@@ -3,7 +3,7 @@
     <header class="site-header" :class="{ 'site-header-scrolled': isScrolled }">
       <div class="container nav-shell">
         <a class="brand" href="#hero" @click="activeSection = 'hero'">
-          <span class="brand-mark">VR</span>
+          <BrandMark :size="40" />
           <span class="brand-copy">
             <strong>Vireak Roeun</strong>
             <small>Full-Stack Developer & DevOps Engineer</small>
@@ -80,14 +80,17 @@
             </p>
           </div>
           <div class="hero-profile reveal">
-            <img
-              src="@/assets/img/profile-img.jpg"
-              alt="Vireak Roeun profile photo"
-              width="520"
-              height="520"
-              loading="eager"
-              fetchpriority="high"
-            />
+            <picture>
+              <source :srcset="profileWebp" type="image/webp" />
+              <img
+                :src="profileJpg"
+                alt="Vireak Roeun profile photo"
+                width="520"
+                height="520"
+                decoding="async"
+                fetchpriority="high"
+              />
+            </picture>
             <div class="profile-meta">
               <p>Phnom Penh, Cambodia</p>
               <span>Institute of Banking and Finance</span>
@@ -238,6 +241,16 @@
       </section>
     </main>
 
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <a class="footer-brand" href="#hero">
+          <BrandMark :size="36" />
+          <strong>Vireak Roeun</strong>
+        </a>
+        <p class="footer-copy">© {{ currentYear }} Vireak Roeun · Phnom Penh, Cambodia</p>
+      </div>
+    </footer>
+
     <button class="scroll-top" type="button" aria-label="Scroll to top" @click="scrollToTop" v-show="showScrollTop">
       <i class="bi bi-arrow-up"></i>
     </button>
@@ -246,6 +259,9 @@
 
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue';
+import BrandMark from '@/components/BrandMark.vue';
+import profileWebp from '@/assets/img/profile-520.webp';
+import profileJpg from '@/assets/img/profile-520.jpg';
 
 const navItems = [
   { id: 'hero', label: 'Home', href: '#hero' },
@@ -259,7 +275,7 @@ const navItems = [
 ];
 
 const socialLinks = {
-  github: 'https://github.com/VireakGumi',
+  github: 'https://github.com/rernvirak-max',
   telegram: 'https://t.me/R_Vireak',
   linkedin: 'https://www.linkedin.com/in/vireak-roeun-6751ab29a/',
   email: 'mailto:roeunvireak0@gmail.com'
@@ -402,8 +418,8 @@ const contacts = [
   },
   {
     label: 'GitHub',
-    value: 'github.com/VireakGumi',
-    href: 'https://github.com/VireakGumi',
+    value: 'github.com/rernvirak-max',
+    href: 'https://github.com/rernvirak-max',
     icon: 'bi bi-github'
   },
   {
@@ -414,6 +430,7 @@ const contacts = [
   }
 ];
 
+const currentYear = new Date().getFullYear();
 const showScrollTop = ref(false);
 const activeSection = ref('hero');
 const isMenuOpen = ref(false);
