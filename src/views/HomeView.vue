@@ -47,39 +47,42 @@
         <div class="bg-orb orb-2"></div>
         <div class="container hero-grid">
           <div class="hero-copy reveal">
-            <p class="eyebrow">Senior DevOps Officer & Full-Stack Developer</p>
+            <div class="hero-kicker">
+              <span class="status-pill">
+                <span class="status-dot" aria-hidden="true"></span>
+                Open to freelance
+              </span>
+              <p class="eyebrow">Senior DevOps Officer & Full-Stack Developer</p>
+            </div>
             <h1>Vireak Roeun</h1>
             <p class="hero-tagline">
               Full-Stack Developer & DevOps Engineer building scalable systems with Laravel, Vue, and AWS.
             </p>
             <div class="hero-actions">
-              <a class="btn btn-solid" href="/Vireak-Roeun-CV.pdf" download>
-                <i class="bi bi-file-earmark-arrow-down"></i>
-                Download My CV
+              <a class="btn btn-solid btn-lg" href="#projects" @click="handleNavClick('projects')">
+                View work
+                <i class="bi bi-arrow-right" aria-hidden="true"></i>
               </a>
-              <a class="btn btn-outline" :href="socialLinks.github" target="_blank" rel="noopener noreferrer">
-                <i class="bi bi-github"></i>
-                GitHub
-              </a>
-              <a class="btn btn-outline" :href="socialLinks.telegram" target="_blank" rel="noopener noreferrer">
-                <i class="bi bi-telegram"></i>
-                Telegram
-              </a>
-              <a class="btn btn-outline" :href="socialLinks.linkedin" target="_blank" rel="noopener noreferrer">
-                <i class="bi bi-linkedin"></i>
-                LinkedIn
-              </a>
-              <a class="btn btn-ghost" :href="socialLinks.email">
-                <i class="bi bi-envelope-fill"></i>
-                Email
+              <a class="btn btn-outline btn-lg" href="/Vireak-Roeun-CV.pdf" download>
+                <i class="bi bi-download" aria-hidden="true"></i>
+                Download CV
               </a>
             </div>
-            <p class="hero-note">
-              <i class="bi bi-stars"></i>
-              Download my CV to learn more about my experience, projects, and technical background.
-            </p>
+            <ul class="hero-social" aria-label="Social links">
+              <li v-for="item in heroSocials" :key="item.label">
+                <a
+                  class="icon-btn"
+                  :href="item.href"
+                  :aria-label="item.label"
+                  :title="item.label"
+                  v-bind="item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {}"
+                >
+                  <i :class="item.icon" aria-hidden="true"></i>
+                </a>
+              </li>
+            </ul>
           </div>
-          <div class="hero-profile reveal">
+          <div class="hero-profile reveal" :style="revealDelay(1)">
             <picture>
               <source :srcset="profileWebp" type="image/webp" />
               <img
@@ -127,18 +130,28 @@
             <p class="eyebrow">Experience</p>
             <h2>Career timeline</h2>
           </div>
-          <div class="timeline">
-            <article class="timeline-item reveal" v-for="job in experiences" :key="job.role + job.company">
-              <div class="timeline-head">
+          <ol class="timeline">
+            <li
+              v-for="(job, index) in experiences"
+              :key="job.role + job.company"
+              class="timeline-item reveal"
+              :class="{ 'is-current': job.period.includes('Present') }"
+              :style="revealDelay(index)"
+            >
+              <span class="timeline-dot" aria-hidden="true"></span>
+              <span class="timeline-badge">
+                <i class="bi bi-calendar3" aria-hidden="true"></i>
+                {{ job.period }}
+              </span>
+              <article class="timeline-card">
                 <h3>{{ job.role }}</h3>
-                <span>{{ job.period }}</span>
-              </div>
-              <p class="company">{{ job.company }}</p>
-              <ul>
-                <li v-for="item in job.responsibilities" :key="item">{{ item }}</li>
-              </ul>
-            </article>
-          </div>
+                <p class="company">{{ job.company }}</p>
+                <ul>
+                  <li v-for="item in job.responsibilities" :key="item">{{ item }}</li>
+                </ul>
+              </article>
+            </li>
+          </ol>
         </div>
       </section>
 
@@ -148,16 +161,16 @@
             <p class="eyebrow">Skills</p>
             <h2>Full-stack and DevOps capabilities</h2>
           </div>
-          <div class="skills-grid">
-            <article class="skill-card reveal" v-for="group in skillGroups" :key="group.title">
-              <div class="skill-card-top">
-                <i :class="group.icon"></i>
-                <h3>{{ group.title }}</h3>
-              </div>
-              <div class="chip-wrap">
-                <span class="chip" v-for="item in group.items" :key="item">{{ item }}</span>
-              </div>
-            </article>
+          <div class="skills-panel reveal">
+            <div class="skill-group" v-for="group in skillGroups" :key="group.title">
+              <h3 class="skill-group-title">
+                <i :class="group.icon" aria-hidden="true"></i>
+                {{ group.title }}
+              </h3>
+              <ul class="chip-wrap chip-wrap-dense" role="list">
+                <li class="chip" v-for="item in group.items" :key="item">{{ item }}</li>
+              </ul>
+            </div>
           </div>
         </div>
       </section>
@@ -169,11 +182,26 @@
             <h2>Selected work and real systems</h2>
           </div>
           <div class="projects-grid">
-            <article class="project-card reveal" v-for="project in projects" :key="project.title">
-              <h3>{{ project.title }}</h3>
-              <p>{{ project.description }}</p>
-              <div class="chip-wrap">
-                <span class="chip" v-for="tech in project.tech" :key="tech">{{ tech }}</span>
+            <article
+              class="project-card reveal"
+              v-for="(project, index) in projects"
+              :key="project.title"
+              :style="revealDelay(index)"
+            >
+              <div class="project-card-head" aria-hidden="true">
+                <span class="project-icon"><i :class="project.icon"></i></span>
+                <span class="project-index">{{ String(index + 1).padStart(2, '0') }}</span>
+              </div>
+              <div class="project-card-body">
+                <h3>{{ project.title }}</h3>
+                <p>{{ project.description }}</p>
+                <div class="chip-wrap">
+                  <span class="chip" v-for="tech in project.tech" :key="tech">{{ tech }}</span>
+                </div>
+                <p class="project-soon">
+                  <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+                  Case study soon
+                </p>
               </div>
             </article>
           </div>
@@ -187,7 +215,12 @@
             <h2>Infrastructure and deployment workflow</h2>
           </div>
           <div class="devops-grid">
-            <article class="devops-card reveal" v-for="item in devopsCards" :key="item.title">
+            <article
+              class="devops-card reveal"
+              v-for="(item, index) in devopsCards"
+              :key="item.title"
+              :style="revealDelay(index)"
+            >
               <i :class="item.icon"></i>
               <h3>{{ item.title }}</h3>
               <p>{{ item.text }}</p>
@@ -214,7 +247,12 @@
             <h2>Academic background</h2>
           </div>
           <div class="education-grid">
-            <article class="edu-card reveal" v-for="item in education" :key="item.school">
+            <article
+              class="edu-card reveal"
+              v-for="(item, index) in education"
+              :key="item.school"
+              :style="revealDelay(index)"
+            >
               <i class="bi bi-mortarboard-fill"></i>
               <h3>{{ item.degree }}</h3>
               <p>{{ item.school }}</p>
@@ -231,7 +269,12 @@
             <h2>Let’s build reliable products together</h2>
           </div>
           <div class="contact-grid">
-            <div class="contact-card reveal" v-for="item in contacts" :key="item.label">
+            <div
+              class="contact-card reveal"
+              v-for="(item, index) in contacts"
+              :key="item.label"
+              :style="revealDelay(index)"
+            >
               <i :class="item.icon"></i>
               <h3>{{ item.label }}</h3>
               <a :href="item.href" target="_blank" rel="noopener noreferrer">{{ item.value }}</a>
@@ -241,7 +284,7 @@
       </section>
     </main>
 
-    <footer class="site-footer">
+    <footer id="site-footer" class="site-footer">
       <div class="container footer-inner">
         <a class="footer-brand" href="#hero">
           <BrandMark :size="36" />
@@ -251,14 +294,37 @@
       </div>
     </footer>
 
-    <button class="scroll-top" type="button" aria-label="Scroll to top" @click="scrollToTop" v-show="showScrollTop">
-      <i class="bi bi-arrow-up"></i>
+    <div
+      class="mobile-cta"
+      :class="{ 'is-hidden': hideMobileCta }"
+      :inert="hideMobileCta"
+      :aria-hidden="hideMobileCta ? 'true' : 'false'"
+    >
+      <a class="btn btn-solid" href="/Vireak-Roeun-CV.pdf" download>
+        <i class="bi bi-download" aria-hidden="true"></i>
+        Download CV
+      </a>
+      <a class="btn btn-outline" href="#contact" @click="handleNavClick('contact')">
+        <i class="bi bi-chat-dots" aria-hidden="true"></i>
+        Contact
+      </a>
+    </div>
+
+    <button
+      class="scroll-top"
+      :class="{ 'scroll-top-lifted': !hideMobileCta }"
+      type="button"
+      aria-label="Scroll to top"
+      @click="scrollToTop"
+      v-show="showScrollTop"
+    >
+      <i class="bi bi-arrow-up" aria-hidden="true"></i>
     </button>
   </div>
 </template>
 
 <script setup>
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import BrandMark from '@/components/BrandMark.vue';
 import profileWebp from '@/assets/img/profile-520.webp';
 import profileJpg from '@/assets/img/profile-520.jpg';
@@ -281,6 +347,13 @@ const socialLinks = {
   email: 'mailto:roeunvireak0@gmail.com'
 };
 
+const heroSocials = [
+  { label: 'GitHub', href: socialLinks.github, icon: 'bi bi-github', external: true },
+  { label: 'Telegram', href: socialLinks.telegram, icon: 'bi bi-telegram', external: true },
+  { label: 'LinkedIn', href: socialLinks.linkedin, icon: 'bi bi-linkedin', external: true },
+  { label: 'Email', href: socialLinks.email, icon: 'bi bi-envelope-fill', external: false }
+];
+
 const skillGroups = [
   { title: 'Backend', icon: 'bi bi-hdd-stack', items: ['PHP', 'Laravel', 'RESTful APIs', 'Node.js'] },
   { title: 'Frontend', icon: 'bi bi-window-stack', items: ['Vue.js', 'Quasar', 'HTML', 'CSS', 'JavaScript'] },
@@ -295,30 +368,35 @@ const skillGroups = [
 const projects = [
   {
     title: 'IBF Dashboard Platform',
+    icon: 'bi bi-speedometer2',
     description:
       'Designed and maintained backend API features for the Institute of Banking and Finance dashboard, then integrated those APIs into a Vue + Quasar frontend.',
     tech: ['Laravel', 'REST API', 'Vue.js', 'Quasar', 'MySQL']
   },
   {
     title: 'Restaurant Display Website',
+    icon: 'bi bi-shop',
     description:
       'Built a production-ready website for restaurant presentation and business visibility with backend-driven content management.',
     tech: ['Laravel', 'Vue.js', 'MySQL']
   },
   {
     title: 'Farm Management System',
+    icon: 'bi bi-flower1',
     description:
       'Developed system modules for farm operations, data tracking, and reporting workflows with reliable backend processing.',
     tech: ['Laravel', 'MySQL', 'JavaScript']
   },
   {
     title: 'Team Management System',
+    icon: 'bi bi-people',
     description:
       'Implemented team workflow features, role-based operations, and structured data management for internal coordination.',
     tech: ['Laravel', 'REST API', 'MySQL']
   },
   {
     title: 'AWS Hosting & CI/CD Services',
+    icon: 'bi bi-cloud-check',
     description:
       'Provided deployment and hosting services for local company projects using AWS infrastructure, Dockerized services, and automated CI/CD pipelines.',
     tech: ['AWS', 'Docker', 'GitHub Actions', 'Ubuntu Server', 'VPS']
@@ -435,7 +513,13 @@ const showScrollTop = ref(false);
 const activeSection = ref('hero');
 const isMenuOpen = ref(false);
 const isScrolled = ref(false);
+const isContactInView = ref(false);
+const hideMobileCta = computed(() => isMenuOpen.value || isContactInView.value);
 let revealObserver;
+let contactObserver;
+
+// Staggered reveal: each card in a grid starts a little later (capped so long lists don't drag).
+const revealDelay = (index) => ({ '--reveal-delay': `${Math.min(index, 4) * 90}ms` });
 
 const handleScroll = () => {
   showScrollTop.value = window.scrollY > 500;
@@ -497,12 +581,38 @@ onMounted(() => {
   );
 
   document.querySelectorAll('.reveal').forEach((el) => revealObserver.observe(el));
+
+  // Hide the mobile CV/Contact bar once the contact section (or footer) is on screen.
+  const visibleTargets = new Set();
+  contactObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          visibleTargets.add(entry.target);
+        } else {
+          visibleTargets.delete(entry.target);
+        }
+      });
+      isContactInView.value = visibleTargets.size > 0;
+    },
+    { rootMargin: '0px 0px -20% 0px' }
+  );
+
+  ['contact', 'site-footer'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) {
+      contactObserver.observe(el);
+    }
+  });
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', handleScroll);
   if (revealObserver) {
     revealObserver.disconnect();
+  }
+  if (contactObserver) {
+    contactObserver.disconnect();
   }
 });
 </script>
