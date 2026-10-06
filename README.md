@@ -2,15 +2,15 @@
 
 Personal portfolio for **Vireak Roeun** (Full-Stack Developer & DevOps Engineer) — live at <https://roeun-vireak.mxlab.site/>.
 
-A single-page site built with **Vue 3 + Vite**. Visual identity follows the MaxTune brand
-(mint `#3dffb5`, coral `#ff7a45`, background `#07080c`, text `#f4f1ea`; Syne + Outfit; Equalizer‑M logo).
+A single-page site built with **Vue 3 + Vite**. Clean light bento-grid design: background `#fafaf9`,
+text `#0a0a0a`, muted `#525252`, borders `#e5e5e5`, single indigo accent `#4f46e5`; Outfit; MaxTune Equalizer‑M logo.
 
 ## Stack
 
 - [Vue 3](https://vuejs.org/) (`<script setup>`) + [Vue Router 4](https://router.vuejs.org/) (single `/` route)
 - [Vite 6](https://vite.dev/) with `@vitejs/plugin-vue`
 - Plain CSS in `src/assets/css/portfolio.css` (design tokens as CSS variables in `:root`)
-- Fonts self-hosted from [`@fontsource/syne`](https://fontsource.org/fonts/syne) and [`@fontsource/outfit`](https://fontsource.org/fonts/outfit) (latin subset, woff2, `font-display: swap`)
+- Fonts self-hosted from [`@fontsource/outfit`](https://fontsource.org/fonts/outfit) (latin subset, woff2, `font-display: swap`)
 - Icons from [`bootstrap-icons`](https://icons.getbootstrap.com/)
 - No analytics, no third-party requests at runtime
 
@@ -22,7 +22,7 @@ public/            Static files copied as-is: CV PDF, favicons/icons, og.png,
 src/
   assets/css/      portfolio.css (tokens, layout, components)
   assets/img/      Profile photo (profile-520.webp + profile-520.jpg fallback)
-  components/      BrandMark.vue (Equalizer-M logo, inline SVG)
+  components/      BrandMark.vue (Equalizer-M logo, inline SVG), SectionHead.vue (section heading)
   views/HomeView.vue  All sections and their content
 index.html         SEO / Open Graph / Twitter tags, JSON-LD, icon links, font preloads
 ```

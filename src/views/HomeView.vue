@@ -1,88 +1,89 @@
 <template>
-  <div class="portfolio-page">
-    <header class="site-header" :class="{ 'site-header-scrolled': isScrolled }">
-      <div class="container nav-shell">
-        <a class="brand" href="#hero" @click="activeSection = 'hero'">
-          <BrandMark :size="40" />
-          <span class="brand-copy">
-            <strong>Vireak Roeun</strong>
-            <small>Full-Stack Developer & DevOps Engineer</small>
-          </span>
+  <div class="page">
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header" :class="{ 'is-scrolled': isScrolled, 'menu-open': isMenuOpen }">
+      <div class="container nav-bar">
+        <a class="brand" href="#hero" aria-label="Vireak Roeun, back to top" @click="handleNavClick('hero')">
+          <BrandMark :size="32" />
+          <span class="brand-name">Vireak Roeun</span>
         </a>
 
-        <button
-          class="nav-toggle"
-          type="button"
-          :aria-expanded="isMenuOpen ? 'true' : 'false'"
-          aria-controls="primary-nav"
-          aria-label="Toggle navigation"
-          @click="toggleMenu"
-        >
-          <i :class="isMenuOpen ? 'bi bi-x-lg' : 'bi bi-list'"></i>
-        </button>
+        <nav class="nav-desktop" aria-label="Primary">
+          <a
+            v-for="item in menuItems"
+            :key="item.href"
+            :href="item.href"
+            :class="{ active: activeSection === item.id }"
+            :aria-current="activeSection === item.id ? 'true' : undefined"
+            @click="handleNavClick(item.id)"
+          >
+            {{ item.label }}
+          </a>
+        </nav>
 
-        <nav id="primary-nav" class="top-nav" :class="{ 'is-open': isMenuOpen }" aria-label="Primary">
-          <div class="nav-links">
-            <a
-              v-for="item in navItems"
-              :key="item.href"
-              :href="item.href"
-              :class="{ active: activeSection === item.id }"
-              @click="handleNavClick(item.id)"
-            >
-              {{ item.label }}
-            </a>
-          </div>
-          <a class="nav-cta" href="/Vireak-Roeun-CV.pdf" download @click="closeMenu">
-            <i class="bi bi-download"></i>
+        <div class="nav-actions">
+          <a class="btn btn-dark btn-sm nav-cv" href="/Vireak-Roeun-CV.pdf" download>
+            <i class="bi bi-download" aria-hidden="true"></i>
+            Download CV
+          </a>
+          <button
+            class="nav-toggle"
+            type="button"
+            :aria-expanded="isMenuOpen ? 'true' : 'false'"
+            aria-controls="mobile-menu"
+            :aria-label="isMenuOpen ? 'Close menu' : 'Open menu'"
+            @click="toggleMenu"
+          >
+            <i :class="isMenuOpen ? 'bi bi-x-lg' : 'bi bi-list'" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+
+      <div id="mobile-menu" class="mobile-menu" :class="{ 'is-open': isMenuOpen }" :inert="!isMenuOpen">
+        <nav class="container" aria-label="Mobile">
+          <a
+            v-for="item in menuItems"
+            :key="item.href"
+            :href="item.href"
+            :class="{ active: activeSection === item.id }"
+            @click="handleNavClick(item.id)"
+          >
+            {{ item.label }}
+            <i class="bi bi-arrow-right" aria-hidden="true"></i>
+          </a>
+          <a class="btn btn-dark btn-block" href="/Vireak-Roeun-CV.pdf" download @click="closeMenu">
+            <i class="bi bi-download" aria-hidden="true"></i>
             Download CV
           </a>
         </nav>
       </div>
     </header>
+    <div class="menu-scrim" :class="{ 'is-open': isMenuOpen }" aria-hidden="true" @click="closeMenu"></div>
 
-    <main>
-      <section id="hero" class="section hero-section">
-        <div class="bg-orb orb-1"></div>
-        <div class="bg-orb orb-2"></div>
-        <div class="container hero-grid">
-          <div class="hero-copy reveal">
-            <div class="hero-kicker">
-              <span class="status-pill">
-                <span class="status-dot" aria-hidden="true"></span>
-                Open to freelance
-              </span>
-              <p class="eyebrow">Senior DevOps Officer & Full-Stack Developer</p>
-            </div>
-            <h1>Vireak Roeun</h1>
+    <main id="main">
+      <!-- Hero: bento grid -->
+      <section id="hero" class="hero" aria-labelledby="hero-title">
+        <div class="container bento">
+          <div class="tile tile-intro reveal">
+            <p class="eyebrow eyebrow-accent">Senior DevOps Officer & Full-Stack Developer</p>
+            <h1 id="hero-title">Vireak Roeun</h1>
             <p class="hero-tagline">
               Full-Stack Developer & DevOps Engineer building scalable systems with Laravel, Vue, and AWS.
             </p>
             <div class="hero-actions">
-              <a class="btn btn-solid btn-lg" href="#projects" @click="handleNavClick('projects')">
+              <a class="btn btn-accent btn-lg" href="#projects" @click="handleNavClick('projects')">
                 View work
                 <i class="bi bi-arrow-right" aria-hidden="true"></i>
               </a>
-              <a class="btn btn-outline btn-lg" href="/Vireak-Roeun-CV.pdf" download>
+              <a class="btn btn-ghost btn-lg" href="/Vireak-Roeun-CV.pdf" download>
                 <i class="bi bi-download" aria-hidden="true"></i>
                 Download CV
               </a>
             </div>
-            <ul class="hero-social" aria-label="Social links">
-              <li v-for="item in heroSocials" :key="item.label">
-                <a
-                  class="icon-btn"
-                  :href="item.href"
-                  :aria-label="item.label"
-                  :title="item.label"
-                  v-bind="item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {}"
-                >
-                  <i :class="item.icon" aria-hidden="true"></i>
-                </a>
-              </li>
-            </ul>
           </div>
-          <div class="hero-profile reveal" :style="revealDelay(1)">
+
+          <div class="tile tile-photo reveal" :style="revealDelay(1)">
             <picture>
               <source :srcset="profileWebp" type="image/webp" />
               <img
@@ -94,191 +95,260 @@
                 fetchpriority="high"
               />
             </picture>
-            <div class="profile-meta">
-              <p>Phnom Penh, Cambodia</p>
-              <span>Institute of Banking and Finance</span>
-            </div>
           </div>
-        </div>
-      </section>
 
-      <section id="about" class="section content-section">
-        <div class="container">
-          <div class="section-head reveal">
-            <p class="eyebrow">About</p>
-            <h2>Production-minded engineering across app and infrastructure</h2>
-          </div>
-          <div class="about-grid">
-            <p class="lead reveal">
-              I am a Full-Stack Developer and DevOps Engineer based in Cambodia, currently working at the Institute
-              of Banking and Finance. I build and maintain business-critical systems using Laravel, Vue.js, Docker,
-              and AWS, with a strong focus on reliability, deployment automation, and operational clarity.
+          <div class="tile tile-status reveal" :style="revealDelay(2)">
+            <p class="status-line">
+              <span class="status-dot" aria-hidden="true"></span>
+              Open to freelance
             </p>
-            <ul class="highlight-list reveal">
-              <li><i class="bi bi-check2-circle"></i> Backend API design and integration for internal platforms</li>
-              <li><i class="bi bi-check2-circle"></i> CI/CD implementation with GitHub Actions for safer releases</li>
-              <li><i class="bi bi-check2-circle"></i> Containerized workloads and server management on Ubuntu/VPS</li>
-              <li><i class="bi bi-check2-circle"></i> Database architecture and data validation with MySQL</li>
+            <p class="tile-note">
+              Currently Senior DevOps Officer at <strong>Institute of Banking and Finance</strong>
+            </p>
+          </div>
+
+          <div class="tile tile-stack reveal" :style="revealDelay(2)">
+            <p class="tile-label">Core stack</p>
+            <ul class="stack-list" role="list">
+              <li v-for="item in heroStack" :key="item.label">
+                <span class="stack-icon"><i :class="item.icon" aria-hidden="true"></i></span>
+                {{ item.label }}
+              </li>
+            </ul>
+          </div>
+
+          <a
+            class="tile tile-location reveal"
+            :href="locationLink"
+            target="_blank"
+            rel="noopener noreferrer"
+            :style="revealDelay(3)"
+          >
+            <p class="tile-label"><i class="bi bi-geo-alt-fill" aria-hidden="true"></i> Location</p>
+            <p class="location-city">Phnom Penh</p>
+            <p class="tile-note">Cambodia</p>
+            <span class="tile-corner" aria-hidden="true"><i class="bi bi-arrow-up-right"></i></span>
+          </a>
+
+          <div class="tile tile-socials reveal" :style="revealDelay(4)">
+            <p class="tile-label">Find me</p>
+            <ul class="social-grid" role="list">
+              <li v-for="item in heroSocials" :key="item.label">
+                <a
+                  :href="item.href"
+                  v-bind="item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {}"
+                >
+                  <i :class="item.icon" aria-hidden="true"></i>
+                  <span>{{ item.label }}</span>
+                </a>
+              </li>
             </ul>
           </div>
         </div>
       </section>
 
-      <section id="experience" class="section content-section">
-        <div class="container">
-          <div class="section-head reveal">
-            <p class="eyebrow">Experience</p>
-            <h2>Career timeline</h2>
+      <!-- About -->
+      <section id="about" class="section" aria-labelledby="about-title">
+        <div class="container about-layout">
+          <div>
+            <SectionHead
+              index="01"
+              eyebrow="About"
+              title="Production-minded engineering across app and infrastructure"
+              title-id="about-title"
+            />
+            <p class="lead reveal">
+              I am a Full-Stack Developer and DevOps Engineer based in Cambodia, currently working at the Institute
+              of Banking and Finance. I build and maintain business-critical systems using Laravel, Vue.js, Docker,
+              and AWS, with a strong focus on reliability, deployment automation, and operational clarity.
+            </p>
           </div>
-          <ol class="timeline">
+          <ul class="highlight-list tile reveal" role="list" :style="revealDelay(1)">
+            <li v-for="item in highlights" :key="item.text">
+              <span class="highlight-icon"><i :class="item.icon" aria-hidden="true"></i></span>
+              {{ item.text }}
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Experience -->
+      <section id="experience" class="section" aria-labelledby="experience-title">
+        <div class="container">
+          <SectionHead index="02" eyebrow="Experience" title="Career timeline" title-id="experience-title" />
+          <ol class="exp-list" role="list">
             <li
               v-for="(job, index) in experiences"
               :key="job.role + job.company"
-              class="timeline-item reveal"
-              :class="{ 'is-current': job.period.includes('Present') }"
+              class="exp-item reveal"
               :style="revealDelay(index)"
             >
-              <span class="timeline-dot" aria-hidden="true"></span>
-              <span class="timeline-badge">
-                <i class="bi bi-calendar3" aria-hidden="true"></i>
-                {{ job.period }}
-              </span>
-              <article class="timeline-card">
+              <div class="exp-meta">
+                <span class="exp-period">{{ job.period }}</span>
+                <span v-if="job.period.includes('Present')" class="badge badge-live">
+                  <span class="status-dot" aria-hidden="true"></span>
+                  Current
+                </span>
+              </div>
+              <div class="exp-body">
                 <h3>{{ job.role }}</h3>
-                <p class="company">{{ job.company }}</p>
-                <ul>
+                <p class="exp-company">{{ job.company }}</p>
+                <ul class="exp-points">
                   <li v-for="item in job.responsibilities" :key="item">{{ item }}</li>
                 </ul>
-              </article>
+              </div>
             </li>
           </ol>
         </div>
       </section>
 
-      <section id="skills" class="section content-section">
+      <!-- Skills -->
+      <section id="skills" class="section" aria-labelledby="skills-title">
         <div class="container">
-          <div class="section-head reveal">
-            <p class="eyebrow">Skills</p>
-            <h2>Full-stack and DevOps capabilities</h2>
-          </div>
-          <div class="skills-panel reveal">
-            <div class="skill-group" v-for="group in skillGroups" :key="group.title">
-              <h3 class="skill-group-title">
-                <i :class="group.icon" aria-hidden="true"></i>
-                {{ group.title }}
-              </h3>
-              <ul class="chip-wrap chip-wrap-dense" role="list">
-                <li class="chip" v-for="item in group.items" :key="item">{{ item }}</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="projects" class="section content-section">
-        <div class="container">
-          <div class="section-head reveal">
-            <p class="eyebrow">Projects</p>
-            <h2>Selected work and real systems</h2>
-          </div>
-          <div class="projects-grid">
+          <SectionHead index="03" eyebrow="Skills" title="Full-stack and DevOps capabilities" title-id="skills-title" />
+          <div class="skills-grid">
             <article
-              class="project-card reveal"
-              v-for="(project, index) in projects"
-              :key="project.title"
+              v-for="(group, index) in skillGroups"
+              :key="group.title"
+              class="tile skill-tile reveal"
+              :class="{ 'skill-tile-accent': group.title === 'DevOps' }"
               :style="revealDelay(index)"
             >
-              <div class="project-card-head" aria-hidden="true">
-                <span class="project-icon"><i :class="project.icon"></i></span>
-                <span class="project-index">{{ String(index + 1).padStart(2, '0') }}</span>
+              <div class="skill-head">
+                <span class="icon-badge"><i :class="group.icon" aria-hidden="true"></i></span>
+                <h3>{{ group.title }}</h3>
               </div>
-              <div class="project-card-body">
-                <h3>{{ project.title }}</h3>
-                <p>{{ project.description }}</p>
-                <div class="chip-wrap">
-                  <span class="chip" v-for="tech in project.tech" :key="tech">{{ tech }}</span>
-                </div>
-                <p class="project-soon">
-                  <i class="bi bi-hourglass-split" aria-hidden="true"></i>
-                  Case study soon
-                </p>
-              </div>
+              <ul class="chips" role="list">
+                <li class="chip" v-for="item in group.items" :key="item">{{ item }}</li>
+              </ul>
             </article>
           </div>
         </div>
       </section>
 
-      <section id="devops" class="section content-section">
+      <!-- Projects -->
+      <section id="projects" class="section" aria-labelledby="projects-title">
         <div class="container">
-          <div class="section-head reveal">
-            <p class="eyebrow">DevOps</p>
-            <h2>Infrastructure and deployment workflow</h2>
-          </div>
-          <div class="devops-grid">
+          <SectionHead index="04" eyebrow="Projects" title="Selected work and real systems" title-id="projects-title" />
+          <div class="projects-grid">
             <article
-              class="devops-card reveal"
-              v-for="(item, index) in devopsCards"
-              :key="item.title"
+              v-for="(project, index) in projects"
+              :key="project.title"
+              class="tile project-card reveal"
+              :class="{ 'project-featured': index === 0 }"
               :style="revealDelay(index)"
             >
-              <i :class="item.icon"></i>
+              <i v-if="index === 0" class="bi bi-speedometer2 project-watermark" aria-hidden="true"></i>
+              <div class="project-top">
+                <span class="icon-badge" :class="{ 'icon-badge-lg': index === 0 }">
+                  <i :class="project.icon" aria-hidden="true"></i>
+                </span>
+                <span v-if="index === 0" class="badge badge-accent">Featured</span>
+                <span v-else class="project-index" aria-hidden="true">{{ String(index + 1).padStart(2, '0') }}</span>
+              </div>
+              <h3>{{ project.title }}</h3>
+              <p class="project-desc">{{ project.description }}</p>
+              <ul class="chips" role="list" :aria-label="`${project.title} tech stack`">
+                <li class="chip" v-for="tech in project.tech" :key="tech">{{ tech }}</li>
+              </ul>
+              <p class="project-soon">
+                <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+                Case study soon
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- DevOps -->
+      <section id="devops" class="section" aria-labelledby="devops-title">
+        <div class="container">
+          <SectionHead index="05" eyebrow="DevOps" title="Infrastructure and deployment workflow" title-id="devops-title" />
+          <div class="devops-grid">
+            <article
+              v-for="(item, index) in devopsCards"
+              :key="item.title"
+              class="tile devops-tile reveal"
+              :style="revealDelay(index)"
+            >
+              <span class="icon-badge"><i :class="item.icon" aria-hidden="true"></i></span>
               <h3>{{ item.title }}</h3>
               <p>{{ item.text }}</p>
             </article>
           </div>
-          <div class="arch-diagram reveal" aria-label="Deployment architecture flow">
-            <span>Vue Frontend</span>
-            <i class="bi bi-arrow-right"></i>
-            <span>Laravel API</span>
-            <i class="bi bi-arrow-right"></i>
-            <span>Docker Container</span>
-            <i class="bi bi-arrow-right"></i>
-            <span>AWS / VPS</span>
-            <i class="bi bi-arrow-right"></i>
-            <span>GitHub Actions CI/CD</span>
+          <div class="flow tile reveal">
+            <p class="tile-label">Deployment architecture flow</p>
+            <ol class="flow-steps" role="list">
+              <li v-for="(step, index) in flowSteps" :key="step.label" class="flow-step">
+                <span class="flow-node">
+                  <i :class="step.icon" aria-hidden="true"></i>
+                  {{ step.label }}
+                </span>
+                <i v-if="index < flowSteps.length - 1" class="bi bi-arrow-right flow-arrow" aria-hidden="true"></i>
+              </li>
+            </ol>
           </div>
         </div>
       </section>
 
-      <section id="education" class="section content-section">
+      <!-- Education -->
+      <section id="education" class="section" aria-labelledby="education-title">
         <div class="container">
-          <div class="section-head reveal">
-            <p class="eyebrow">Education</p>
-            <h2>Academic background</h2>
-          </div>
-          <div class="education-grid">
+          <SectionHead index="06" eyebrow="Education" title="Academic background" title-id="education-title" />
+          <div class="edu-grid">
             <article
-              class="edu-card reveal"
               v-for="(item, index) in education"
               :key="item.school"
+              class="tile edu-tile reveal"
               :style="revealDelay(index)"
             >
-              <i class="bi bi-mortarboard-fill"></i>
-              <h3>{{ item.degree }}</h3>
-              <p>{{ item.school }}</p>
-              <span>{{ item.period }}</span>
+              <span class="icon-badge"><i class="bi bi-mortarboard-fill" aria-hidden="true"></i></span>
+              <div>
+                <h3>{{ item.degree }}</h3>
+                <p>{{ item.school }}</p>
+              </div>
+              <span class="edu-period">{{ item.period }}</span>
             </article>
           </div>
         </div>
       </section>
 
-      <section id="contact" class="section content-section">
+      <!-- Contact: closing CTA band -->
+      <section id="contact" class="section section-contact" aria-labelledby="contact-title">
         <div class="container">
-          <div class="section-head reveal">
-            <p class="eyebrow">Contact</p>
-            <h2>Let’s build reliable products together</h2>
-          </div>
-          <div class="contact-grid">
-            <div
-              class="contact-card reveal"
-              v-for="(item, index) in contacts"
-              :key="item.label"
-              :style="revealDelay(index)"
-            >
-              <i :class="item.icon"></i>
-              <h3>{{ item.label }}</h3>
-              <a :href="item.href" target="_blank" rel="noopener noreferrer">{{ item.value }}</a>
+          <div class="cta-band reveal">
+            <p class="eyebrow eyebrow-invert">
+              <span class="eyebrow-index">07</span>
+              Contact
+            </p>
+            <h2 id="contact-title">Let’s build reliable products together</h2>
+            <div class="cta-actions">
+              <a
+                v-for="(item, index) in ctaContacts"
+                :key="item.label"
+                class="btn btn-lg"
+                :class="index === 0 ? 'btn-light' : 'btn-outline-light'"
+                :href="item.href"
+                v-bind="item.href.startsWith('mailto:') ? {} : { target: '_blank', rel: 'noopener noreferrer' }"
+              >
+                <i :class="item.icon" aria-hidden="true"></i>
+                {{ item.label }}
+              </a>
             </div>
+            <ul class="cta-details" role="list">
+              <li v-for="item in contacts" :key="item.label">
+                <span class="cta-detail-label">
+                  <i :class="item.icon" aria-hidden="true"></i>
+                  {{ item.label }}
+                </span>
+                <a
+                  :href="item.href"
+                  v-bind="item.href.startsWith('mailto:') ? {} : { target: '_blank', rel: 'noopener noreferrer' }"
+                >
+                  {{ item.value }}
+                </a>
+              </li>
+            </ul>
           </div>
         </div>
       </section>
@@ -286,46 +356,24 @@
 
     <footer id="site-footer" class="site-footer">
       <div class="container footer-inner">
-        <a class="footer-brand" href="#hero">
-          <BrandMark :size="36" />
-          <strong>Vireak Roeun</strong>
+        <a class="brand" href="#hero" @click="handleNavClick('hero')">
+          <BrandMark :size="28" />
+          <span class="brand-name">Vireak Roeun</span>
         </a>
         <p class="footer-copy">© {{ currentYear }} Vireak Roeun · Phnom Penh, Cambodia</p>
+        <a class="footer-top" href="#hero" @click="handleNavClick('hero')">
+          Back to top
+          <i class="bi bi-arrow-up" aria-hidden="true"></i>
+        </a>
       </div>
     </footer>
-
-    <div
-      class="mobile-cta"
-      :class="{ 'is-hidden': hideMobileCta }"
-      :inert="hideMobileCta"
-      :aria-hidden="hideMobileCta ? 'true' : 'false'"
-    >
-      <a class="btn btn-solid" href="/Vireak-Roeun-CV.pdf" download>
-        <i class="bi bi-download" aria-hidden="true"></i>
-        Download CV
-      </a>
-      <a class="btn btn-outline" href="#contact" @click="handleNavClick('contact')">
-        <i class="bi bi-chat-dots" aria-hidden="true"></i>
-        Contact
-      </a>
-    </div>
-
-    <button
-      class="scroll-top"
-      :class="{ 'scroll-top-lifted': !hideMobileCta }"
-      type="button"
-      aria-label="Scroll to top"
-      @click="scrollToTop"
-      v-show="showScrollTop"
-    >
-      <i class="bi bi-arrow-up" aria-hidden="true"></i>
-    </button>
   </div>
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 import BrandMark from '@/components/BrandMark.vue';
+import SectionHead from '@/components/SectionHead.vue';
 import profileWebp from '@/assets/img/profile-520.webp';
 import profileJpg from '@/assets/img/profile-520.jpg';
 
@@ -340,6 +388,9 @@ const navItems = [
   { id: 'contact', label: 'Contact', href: '#contact' }
 ];
 
+// Top nav shows every section except Home (the logo links back to the top).
+const menuItems = navItems.filter((item) => item.id !== 'hero');
+
 const socialLinks = {
   github: 'https://github.com/rernvirak-max',
   telegram: 'https://t.me/R_Vireak',
@@ -352,6 +403,22 @@ const heroSocials = [
   { label: 'Telegram', href: socialLinks.telegram, icon: 'bi bi-telegram', external: true },
   { label: 'LinkedIn', href: socialLinks.linkedin, icon: 'bi bi-linkedin', external: true },
   { label: 'Email', href: socialLinks.email, icon: 'bi bi-envelope-fill', external: false }
+];
+
+// Hero "core stack" tile: technologies already listed in the tagline and skills.
+const heroStack = [
+  { label: 'Laravel', icon: 'bi bi-hdd-stack' },
+  { label: 'Vue.js', icon: 'bi bi-window-stack' },
+  { label: 'Quasar', icon: 'bi bi-grid-1x2' },
+  { label: 'AWS', icon: 'bi bi-cloud-check' },
+  { label: 'Docker', icon: 'bi bi-box-seam' }
+];
+
+const highlights = [
+  { icon: 'bi bi-diagram-3', text: 'Backend API design and integration for internal platforms' },
+  { icon: 'bi bi-git', text: 'CI/CD implementation with GitHub Actions for safer releases' },
+  { icon: 'bi bi-box-seam', text: 'Containerized workloads and server management on Ubuntu/VPS' },
+  { icon: 'bi bi-database', text: 'Database architecture and data validation with MySQL' }
 ];
 
 const skillGroups = [
@@ -424,6 +491,14 @@ const devopsCards = [
     icon: 'bi bi-terminal',
     text: 'Configured Ubuntu servers, hardened runtime setup, and optimized service reliability.'
   }
+];
+
+const flowSteps = [
+  { label: 'Vue Frontend', icon: 'bi bi-window-stack' },
+  { label: 'Laravel API', icon: 'bi bi-hdd-stack' },
+  { label: 'Docker Container', icon: 'bi bi-box-seam' },
+  { label: 'AWS / VPS', icon: 'bi bi-cloud-arrow-up' },
+  { label: 'GitHub Actions CI/CD', icon: 'bi bi-git' }
 ];
 
 const experiences = [
@@ -508,34 +583,28 @@ const contacts = [
   }
 ];
 
+const ctaContacts = contacts.filter((item) => ['Email', 'Telegram', 'LinkedIn'].includes(item.label));
+const locationLink = contacts.find((item) => item.label === 'Location').href;
+
 const currentYear = new Date().getFullYear();
-const showScrollTop = ref(false);
 const activeSection = ref('hero');
 const isMenuOpen = ref(false);
 const isScrolled = ref(false);
-const isContactInView = ref(false);
-const hideMobileCta = computed(() => isMenuOpen.value || isContactInView.value);
 let revealObserver;
-let contactObserver;
 
-// Staggered reveal: each card in a grid starts a little later (capped so long lists don't drag).
-const revealDelay = (index) => ({ '--reveal-delay': `${Math.min(index, 4) * 90}ms` });
-
-const handleScroll = () => {
-  showScrollTop.value = window.scrollY > 500;
-  isScrolled.value = window.scrollY > 24;
-  updateActiveSection();
-};
-
-const scrollToTop = () => {
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-};
+// Light stagger for items in a grid (capped so long lists don't drag).
+const revealDelay = (index) => ({ '--reveal-delay': `${Math.min(index, 4) * 70}ms` });
 
 const updateActiveSection = () => {
-  const scrollPosition = window.scrollY + 140;
-  const sections = navItems.map((item) => item.id);
+  // Bottom of the page: the short contact section may never reach the offset line.
+  if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) {
+    activeSection.value = 'contact';
+    return;
+  }
 
-  for (const id of sections) {
+  const scrollPosition = window.scrollY + 120;
+
+  for (const { id } of navItems) {
     const section = document.getElementById(id);
     if (!section) {
       continue;
@@ -549,6 +618,20 @@ const updateActiveSection = () => {
       return;
     }
   }
+
+};
+
+let ticking = false;
+const handleScroll = () => {
+  if (ticking) {
+    return;
+  }
+  ticking = true;
+  window.requestAnimationFrame(() => {
+    isScrolled.value = window.scrollY > 8;
+    updateActiveSection();
+    ticking = false;
+  });
 };
 
 const toggleMenu = () => {
@@ -564,8 +647,25 @@ const handleNavClick = (id) => {
   closeMenu();
 };
 
+const handleKeydown = (event) => {
+  if (event.key === 'Escape' && isMenuOpen.value) {
+    closeMenu();
+    document.querySelector('.nav-toggle')?.focus();
+  }
+};
+
+// Close the mobile menu if the viewport grows past the mobile breakpoint.
+const handleResize = () => {
+  if (isMenuOpen.value && window.innerWidth >= 1024) {
+    closeMenu();
+  }
+};
+
 onMounted(() => {
-  window.addEventListener('scroll', handleScroll);
+  window.addEventListener('scroll', handleScroll, { passive: true });
+  window.addEventListener('keydown', handleKeydown);
+  window.addEventListener('resize', handleResize);
+  isScrolled.value = window.scrollY > 8;
   updateActiveSection();
 
   revealObserver = new IntersectionObserver(
@@ -577,42 +677,18 @@ onMounted(() => {
         }
       });
     },
-    { threshold: 0.15 }
+    { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }
   );
 
   document.querySelectorAll('.reveal').forEach((el) => revealObserver.observe(el));
-
-  // Hide the mobile CV/Contact bar once the contact section (or footer) is on screen.
-  const visibleTargets = new Set();
-  contactObserver = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          visibleTargets.add(entry.target);
-        } else {
-          visibleTargets.delete(entry.target);
-        }
-      });
-      isContactInView.value = visibleTargets.size > 0;
-    },
-    { rootMargin: '0px 0px -20% 0px' }
-  );
-
-  ['contact', 'site-footer'].forEach((id) => {
-    const el = document.getElementById(id);
-    if (el) {
-      contactObserver.observe(el);
-    }
-  });
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', handleScroll);
+  window.removeEventListener('keydown', handleKeydown);
+  window.removeEventListener('resize', handleResize);
   if (revealObserver) {
     revealObserver.disconnect();
-  }
-  if (contactObserver) {
-    contactObserver.disconnect();
   }
 });
 </script>
