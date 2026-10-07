@@ -1,0 +1,19 @@
+// Per-route <title> / description / canonical. Plain JS (no Vue imports) so vite.config.js
+// can reuse it to bake the same tags into dist/course/index.html at build time.
+// Home must match the defaults in index.html.
+export const SITE_URL = 'https://roeun-vireak.mxlab.site'
+
+export const routeMeta = {
+  home: {
+    title: 'Vireak Roeun | Full-Stack Developer & DevOps Engineer',
+    description:
+      'Vireak Roeun - Senior DevOps Officer and Full-Stack Developer building scalable systems with Laravel, Vue, Docker, and AWS.',
+    canonical: `${SITE_URL}/`
+  },
+  course: {
+    title: 'Full-stack teaching course enquiry | Vireak Roeun',
+    description:
+      'Enquire about Vireak Roeun’s 60-hour Laravel + Vue full-stack course with a Class Manager capstone, taught in English and Khmer.',
+    canonical: `${SITE_URL}/course/`
+  }
+}

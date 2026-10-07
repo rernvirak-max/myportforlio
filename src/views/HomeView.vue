@@ -252,7 +252,11 @@
               <ul class="chips" role="list" :aria-label="`${project.title} tech stack`">
                 <li class="chip" v-for="tech in project.tech" :key="tech">{{ tech }}</li>
               </ul>
-              <p class="project-soon">
+              <router-link v-if="project.link" class="project-link" :to="project.link.to">
+                {{ project.link.label }}
+                <i class="bi bi-arrow-right" aria-hidden="true"></i>
+              </router-link>
+              <p v-else class="project-soon">
                 <i class="bi bi-hourglass-split" aria-hidden="true"></i>
                 Case study soon
               </p>
@@ -335,6 +339,10 @@
                 <i :class="item.icon" aria-hidden="true"></i>
                 {{ item.label }}
               </a>
+              <router-link class="btn btn-lg btn-outline-light" :to="{ name: 'course' }">
+                <i class="bi bi-journal-code" aria-hidden="true"></i>
+                Course enquiry
+              </router-link>
             </div>
             <ul class="cta-details" role="list">
               <li v-for="item in contacts" :key="item.label">
@@ -487,7 +495,8 @@ const projects = [
     icon: 'bi bi-journal-code',
     description:
       '60-hour Laravel + Vue curriculum with a Class Manager capstone, delivered bilingual in English and Khmer.',
-    tech: ['Laravel', 'Vue.js']
+    tech: ['Laravel', 'Vue.js'],
+    link: { to: { name: 'course' }, label: 'Course enquiry' }
   },
   {
     title: 'Restaurant Display Website',
