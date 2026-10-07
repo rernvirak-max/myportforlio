@@ -77,12 +77,32 @@
               </p>
               <h2 id="enquiry-title">Interested in the course?</h2>
               <p class="tile-note">
-                Tell me a little about yourself and what you’d like to learn. Submitting opens your email app with
-                everything filled in, ready to send.
+                Tell me a little about yourself and what you’d like to learn.
+                <template v-if="apiEnabled">I’ll get your enquiry straight away and reply by email.</template>
+                <template v-else>Submitting opens your email app with everything filled in, ready to send.</template>
               </p>
             </header>
 
-            <div v-if="submitted" class="form-success" role="status">
+            <div v-if="submitted && submittedVia === 'api'" class="form-success" role="status">
+              <span class="success-icon" aria-hidden="true"><i class="bi bi-check-lg"></i></span>
+              <h3 ref="successHeading" tabindex="-1">Thanks — your enquiry is in!</h3>
+              <p>
+                {{ apiMessage || 'I’ve received your enquiry.' }} I’ll reply to <strong>{{ form.email.trim() }}</strong>
+                <template v-if="form.contact.trim()"> or on the contact you shared</template>.
+              </p>
+              <div class="form-success-actions">
+                <a class="btn btn-ghost" :href="contact.telegramUrl" target="_blank" rel="noopener noreferrer">
+                  <i class="bi bi-telegram" aria-hidden="true"></i>
+                  Message on Telegram
+                </a>
+                <button class="btn btn-ghost" type="button" @click="startNewEnquiry">
+                  <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                  Send another enquiry
+                </button>
+              </div>
+            </div>
+
+            <div v-else-if="submitted" class="form-success" role="status">
               <span class="success-icon" aria-hidden="true"><i class="bi bi-check-lg"></i></span>
               <h3 ref="successHeading" tabindex="-1">Almost done — just press Send</h3>
               <p>
@@ -127,7 +147,25 @@
               </button>
             </div>
 
-            <form v-else class="course-form" novalidate @submit.prevent="handleSubmit">
+            <form v-else class="course-form" novalidate :aria-busy="sending ? 'true' : 'false'" @submit.prevent="handleSubmit">
+              <div v-if="apiError" class="form-alert" role="alert">
+                <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+                <span>
+                  {{ apiError }}
+                  <span class="form-alert-actions">
+                    <a :href="mailtoHref" @click="markMailtoFallback">Send it by email instead</a>
+                    ·
+                    <a :href="contact.telegramUrl" target="_blank" rel="noopener noreferrer">Message on Telegram</a>
+                  </span>
+                </span>
+              </div>
+
+              <!-- Honeypot: hidden from people, bots tend to fill it. -->
+              <div class="hp-field" aria-hidden="true">
+                <label for="cf-website">Website</label>
+                <input id="cf-website" v-model="honeypot" type="text" name="website" tabindex="-1" autocomplete="off" />
+              </div>
+
               <div v-if="showSummary && errorCount" class="form-alert" role="alert">
                 <i class="bi bi-info-circle-fill" aria-hidden="true"></i>
                 <span>
@@ -152,7 +190,7 @@
                     @blur="touch('name')"
                   />
                   <p v-if="showError('name')" id="cf-name-error" class="field-error">
-                    <i class="bi bi-exclamation-circle" aria-hidden="true"></i>{{ errors.name }}
+                    <i class="bi bi-exclamation-circle" aria-hidden="true"></i>{{ allErrors.name }}
                   </p>
                 </div>
 
@@ -172,7 +210,7 @@
                     @blur="touch('email')"
                   />
                   <p v-if="showError('email')" id="cf-email-error" class="field-error">
-                    <i class="bi bi-exclamation-circle" aria-hidden="true"></i>{{ errors.email }}
+                    <i class="bi bi-exclamation-circle" aria-hidden="true"></i>{{ allErrors.email }}
                   </p>
                 </div>
               </div>
@@ -196,7 +234,7 @@
                 />
                 <p id="cf-contact-hint" class="field-hint">Only if you’d like a reply there as well as by email.</p>
                 <p v-if="showError('contact')" id="cf-contact-error" class="field-error">
-                  <i class="bi bi-exclamation-circle" aria-hidden="true"></i>{{ errors.contact }}
+                  <i class="bi bi-exclamation-circle" aria-hidden="true"></i>{{ allErrors.contact }}
                 </p>
               </div>
 
@@ -219,7 +257,7 @@
                   </label>
                 </div>
                 <p v-if="showError('language')" id="cf-language-error" class="field-error">
-                  <i class="bi bi-exclamation-circle" aria-hidden="true"></i>{{ errors.language }}
+                  <i class="bi bi-exclamation-circle" aria-hidden="true"></i>{{ allErrors.language }}
                 </p>
               </fieldset>
 
@@ -242,7 +280,7 @@
                   </label>
                 </div>
                 <p v-if="showError('format')" id="cf-format-error" class="field-error">
-                  <i class="bi bi-exclamation-circle" aria-hidden="true"></i>{{ errors.format }}
+                  <i class="bi bi-exclamation-circle" aria-hidden="true"></i>{{ allErrors.format }}
                 </p>
               </fieldset>
 
@@ -265,7 +303,7 @@
                   <i class="bi bi-chevron-down" aria-hidden="true"></i>
                 </div>
                 <p v-if="showError('level')" id="cf-level-error" class="field-error">
-                  <i class="bi bi-exclamation-circle" aria-hidden="true"></i>{{ errors.level }}
+                  <i class="bi bi-exclamation-circle" aria-hidden="true"></i>{{ allErrors.level }}
                 </p>
               </div>
 
@@ -287,16 +325,21 @@
                   {{ form.message.length }} / {{ MESSAGE_MAX }}
                 </p>
                 <p v-if="showError('message')" id="cf-message-error" class="field-error">
-                  <i class="bi bi-exclamation-circle" aria-hidden="true"></i>{{ errors.message }}
+                  <i class="bi bi-exclamation-circle" aria-hidden="true"></i>{{ allErrors.message }}
                 </p>
               </div>
 
               <div class="form-submit">
-                <button class="btn btn-accent btn-lg" type="submit">
-                  <i class="bi bi-send" aria-hidden="true"></i>
-                  Send enquiry
+                <button class="btn btn-accent btn-lg" type="submit" :disabled="sending">
+                  <span v-if="sending" class="btn-spinner" aria-hidden="true"></span>
+                  <i v-else class="bi bi-send" aria-hidden="true"></i>
+                  {{ sending ? 'Sending…' : 'Send enquiry' }}
                 </button>
-                <p class="field-hint">Opens your email app — nothing is stored on this site.</p>
+                <p class="field-hint" aria-live="polite">
+                  <template v-if="sending">Sending your enquiry…</template>
+                  <template v-else-if="apiEnabled">Sent securely to me — used only to reply to your enquiry.</template>
+                  <template v-else>Opens your email app — nothing is stored on this site.</template>
+                </p>
               </div>
             </form>
           </div>
@@ -363,7 +406,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import BrandMark from '@/components/BrandMark.vue';
 import SectionHead from '@/components/SectionHead.vue';
 import profileWebp from '@/assets/img/profile-520.webp';
@@ -473,6 +516,19 @@ const form = reactive({
   message: ''
 });
 
+// Optional backend (myportfolio-engine). When unset, the form falls back to mailto.
+const API_URL = (import.meta.env.VITE_API_URL || '').trim().replace(/\/+$/, '');
+const apiEnabled = Boolean(API_URL);
+const LANGUAGE_CODES = { English: 'en', Khmer: 'km' };
+const FORMAT_CODES = { Online: 'online', 'In person': 'in_person', Either: 'either' };
+
+const honeypot = ref('');
+const sending = ref(false);
+const submittedVia = ref('mailto');
+const apiMessage = ref('');
+const apiError = ref('');
+const serverErrors = reactive({});
+
 const touched = reactive({});
 const showSummary = ref(false);
 const submitted = ref(false);
@@ -531,9 +587,27 @@ const errors = computed(() => {
   return result;
 });
 
-const errorCount = computed(() => Object.keys(errors.value).length);
+const allErrors = computed(() => {
+  const merged = { ...errors.value };
+  for (const [field, message] of Object.entries(serverErrors)) {
+    if (message && !merged[field]) merged[field] = message;
+  }
+  return merged;
+});
 
-const showError = (field) => Boolean(errors.value[field]) && Boolean(touched[field] || showSummary.value);
+// A server error on a field disappears once the visitor edits that field.
+FIELD_ORDER.forEach((field) => {
+  watch(
+    () => form[field],
+    () => {
+      delete serverErrors[field];
+    }
+  );
+});
+
+const errorCount = computed(() => Object.keys(allErrors.value).length);
+
+const showError = (field) => Boolean(allErrors.value[field]) && Boolean(touched[field] || showSummary.value);
 
 const touch = (field) => {
   touched[field] = true;
@@ -575,17 +649,98 @@ const focusField = (field) => {
   el?.scrollIntoView({ block: 'center', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
 };
 
-const handleSubmit = async () => {
-  FIELD_ORDER.forEach(touch);
-  showSummary.value = true;
+const showSuccess = async (via) => {
+  submittedVia.value = via;
+  submitted.value = true;
+  copyState.value = 'idle';
+  await nextTick();
+  successHeading.value?.focus();
+};
 
-  if (errorCount.value) {
-    const first = FIELD_ORDER.find((field) => errors.value[field]);
-    await nextTick();
-    focusField(first);
+const markMailtoFallback = () => {
+  showSuccess('mailto');
+};
+
+const focusFirstError = async () => {
+  const first = FIELD_ORDER.find((field) => allErrors.value[field]);
+  await nextTick();
+  if (first) focusField(first);
+};
+
+const submitToApi = async () => {
+  const payload = {
+    name: form.name.trim(),
+    email: form.email.trim(),
+    contact: form.contact.trim() || null,
+    language: LANGUAGE_CODES[form.language] ?? form.language,
+    format: FORMAT_CODES[form.format] ?? form.format,
+    level: form.level,
+    message: form.message.trim(),
+    website: honeypot.value
+  };
+
+  let response;
+  try {
+    response = await fetch(`${API_URL}/api/course-enquiries`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch {
+    apiError.value =
+      'I couldn’t reach the server — please check your connection and try again, or send your enquiry by email or Telegram.';
     return;
   }
 
+  const data = await response.json().catch(() => ({}));
+
+  if (response.ok) {
+    apiMessage.value = typeof data.message === 'string' ? data.message : '';
+    await showSuccess('api');
+    return;
+  }
+
+  if (response.status === 422 && data.errors) {
+    for (const [field, messages] of Object.entries(data.errors)) {
+      if (FIELD_ORDER.includes(field)) {
+        serverErrors[field] = Array.isArray(messages) ? messages[0] : String(messages);
+      }
+    }
+    if (Object.keys(serverErrors).length) {
+      showSummary.value = true;
+      await focusFirstError();
+      return;
+    }
+  }
+
+  apiError.value =
+    response.status === 429
+      ? 'You’ve sent a few enquiries in a row — please wait a minute and try again, or reach me by email or Telegram.'
+      : 'Sorry, something went wrong on my side and your enquiry wasn’t sent. Please try again in a moment, or use email or Telegram.';
+};
+
+const handleSubmit = async () => {
+  if (sending.value) return;
+  FIELD_ORDER.forEach(touch);
+  showSummary.value = true;
+  apiError.value = '';
+
+  if (errorCount.value) {
+    await focusFirstError();
+    return;
+  }
+
+  if (apiEnabled) {
+    sending.value = true;
+    try {
+      await submitToApi();
+    } finally {
+      sending.value = false;
+    }
+    return;
+  }
+
+  submittedVia.value = 'mailto';
   submitted.value = true;
   copyState.value = 'idle';
   await nextTick();
@@ -600,6 +755,14 @@ const copyEnquiry = async () => {
   } catch {
     copyState.value = 'failed';
   }
+};
+
+const startNewEnquiry = async () => {
+  Object.assign(form, { name: '', email: '', contact: '', language: '', format: '', level: '', message: '' });
+  Object.keys(touched).forEach((key) => delete touched[key]);
+  Object.keys(serverErrors).forEach((key) => delete serverErrors[key]);
+  apiMessage.value = '';
+  await editEnquiry();
 };
 
 const editEnquiry = async () => {

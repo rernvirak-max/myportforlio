@@ -2226,3 +2226,49 @@ textarea.input {
     transition: none;
   }
 }
+
+/* Course enquiry API states */
+.hp-field {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.form-alert-actions {
+  display: block;
+  margin-top: 0.35rem;
+}
+
+.form-alert-actions a {
+  color: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.btn-spinner {
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: btn-spin 0.7s linear infinite;
+}
+
+.btn[disabled] {
+  opacity: 0.75;
+  cursor: progress;
+}
+
+@keyframes btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-spinner {
+    animation-duration: 2s;
+  }
+}
