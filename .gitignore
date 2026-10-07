@@ -8,6 +8,9 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+
+# Build output (deploy builds from source)
+dist
 .DS_Store
 dist-ssr
 # coverage
@@ -27,3 +30,8 @@ dist-ssr
 *.sw?
 
 *.tsbuildinfo
+
+# Local env files
+.env
+.env.local
+.env.*.local

@@ -1,251 +1,440 @@
 <template>
-  <div class="portfolio-page">
-    <header class="site-header" :class="{ 'site-header-scrolled': isScrolled }">
-      <div class="container nav-shell">
-        <a class="brand" href="#hero" @click="activeSection = 'hero'">
-          <span class="brand-mark">VR</span>
-          <span class="brand-copy">
-            <strong>Vireak Roeun</strong>
-            <small>Full-Stack Developer & DevOps Engineer</small>
-          </span>
+  <div class="page">
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header" :class="{ 'is-scrolled': isScrolled, 'menu-open': isMenuOpen }">
+      <div class="container nav-bar">
+        <a class="brand" href="#hero" aria-label="Vireak Roeun, back to top" @click="handleNavClick('hero')">
+          <BrandMark :size="32" />
+          <span class="brand-name">Vireak Roeun</span>
         </a>
 
-        <button
-          class="nav-toggle"
-          type="button"
-          :aria-expanded="isMenuOpen ? 'true' : 'false'"
-          aria-controls="primary-nav"
-          aria-label="Toggle navigation"
-          @click="toggleMenu"
-        >
-          <i :class="isMenuOpen ? 'bi bi-x-lg' : 'bi bi-list'"></i>
-        </button>
+        <nav class="nav-desktop" aria-label="Primary">
+          <a
+            v-for="item in desktopMenuItems"
+            :key="item.href"
+            :href="item.href"
+            :class="{ active: activeSection === item.id }"
+            :aria-current="activeSection === item.id ? 'true' : undefined"
+            @click="handleNavClick(item.id)"
+          >
+            {{ item.label }}
+          </a>
+        </nav>
 
-        <nav id="primary-nav" class="top-nav" :class="{ 'is-open': isMenuOpen }" aria-label="Primary">
-          <div class="nav-links">
-            <a
-              v-for="item in navItems"
-              :key="item.href"
-              :href="item.href"
-              :class="{ active: activeSection === item.id }"
-              @click="handleNavClick(item.id)"
-            >
-              {{ item.label }}
-            </a>
-          </div>
-          <a class="nav-cta" href="/Vireak-Roeun-CV.pdf" download @click="closeMenu">
-            <i class="bi bi-download"></i>
+        <div class="nav-actions">
+          <router-link class="btn btn-accent btn-sm nav-course" to="/courses">
+            <i class="bi bi-mortarboard-fill" aria-hidden="true"></i>
+            Courses<span class="nav-course-extra"> · Enroll</span>
+          </router-link>
+          <a class="btn btn-dark btn-sm nav-cv" href="/Vireak-Roeun-CV.pdf" download aria-label="Download CV">
+            <i class="bi bi-download" aria-hidden="true"></i>
+            CV
+          </a>
+          <button
+            class="nav-toggle"
+            type="button"
+            :aria-expanded="isMenuOpen ? 'true' : 'false'"
+            aria-controls="mobile-menu"
+            :aria-label="isMenuOpen ? 'Close menu' : 'Open menu'"
+            @click="toggleMenu"
+          >
+            <i :class="isMenuOpen ? 'bi bi-x-lg' : 'bi bi-list'" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+
+      <div id="mobile-menu" class="mobile-menu" :class="{ 'is-open': isMenuOpen }" :inert="!isMenuOpen">
+        <nav class="container" aria-label="Mobile">
+          <router-link class="mobile-course" to="/courses" @click="closeMenu">
+            <span><i class="bi bi-mortarboard-fill" aria-hidden="true"></i> Courses · Enroll</span>
+            <i class="bi bi-arrow-right" aria-hidden="true"></i>
+          </router-link>
+          <a
+            v-for="item in menuItems"
+            :key="item.href"
+            :href="item.href"
+            :class="{ active: activeSection === item.id }"
+            @click="handleNavClick(item.id)"
+          >
+            {{ item.label }}
+            <i class="bi bi-arrow-right" aria-hidden="true"></i>
+          </a>
+          <a class="btn btn-dark btn-block" href="/Vireak-Roeun-CV.pdf" download @click="closeMenu">
+            <i class="bi bi-download" aria-hidden="true"></i>
             Download CV
           </a>
         </nav>
       </div>
     </header>
+    <div class="menu-scrim" :class="{ 'is-open': isMenuOpen }" aria-hidden="true" @click="closeMenu"></div>
 
-    <main>
-      <section id="hero" class="section hero-section">
-        <div class="bg-orb orb-1"></div>
-        <div class="bg-orb orb-2"></div>
-        <div class="container hero-grid">
-          <div class="hero-copy reveal">
-            <p class="eyebrow">Senior DevOps Officer & Full-Stack Developer</p>
-            <h1>Vireak Roeun</h1>
+    <main id="main">
+      <!-- Hero: bento grid -->
+      <section id="hero" class="hero" aria-labelledby="hero-title">
+        <div class="container bento">
+          <div class="tile tile-intro reveal">
+            <p class="eyebrow eyebrow-accent">Senior DevOps Officer & Full-Stack Developer · Team Lead Digital &amp; Information (IBF)</p>
+            <h1 id="hero-title">Vireak Roeun</h1>
             <p class="hero-tagline">
-              Full-Stack Developer & DevOps Engineer building scalable systems with Laravel, Vue, and AWS.
+              Full-Stack Developer & DevOps Engineer shipping Laravel, Vue, and Quasar systems with Docker, Coolify, and AWS.
             </p>
             <div class="hero-actions">
-              <a class="btn btn-solid" href="/Vireak-Roeun-CV.pdf" download>
-                <i class="bi bi-file-earmark-arrow-down"></i>
-                Download My CV
+              <a class="btn btn-accent btn-lg" href="#projects" @click="handleNavClick('projects')">
+                View work
+                <i class="bi bi-arrow-right" aria-hidden="true"></i>
               </a>
-              <a class="btn btn-outline" :href="socialLinks.github" target="_blank" rel="noopener noreferrer">
-                <i class="bi bi-github"></i>
-                GitHub
-              </a>
-              <a class="btn btn-outline" :href="socialLinks.telegram" target="_blank" rel="noopener noreferrer">
-                <i class="bi bi-telegram"></i>
-                Telegram
-              </a>
-              <a class="btn btn-outline" :href="socialLinks.linkedin" target="_blank" rel="noopener noreferrer">
-                <i class="bi bi-linkedin"></i>
-                LinkedIn
-              </a>
-              <a class="btn btn-ghost" :href="socialLinks.email">
-                <i class="bi bi-envelope-fill"></i>
-                Email
+              <router-link class="btn btn-ghost btn-lg" to="/courses">
+                <i class="bi bi-mortarboard" aria-hidden="true"></i>
+                See my courses
+              </router-link>
+              <a class="btn btn-ghost btn-lg" href="/Vireak-Roeun-CV.pdf" download>
+                <i class="bi bi-download" aria-hidden="true"></i>
+                Download CV
               </a>
             </div>
-            <p class="hero-note">
-              <i class="bi bi-stars"></i>
-              Download my CV to learn more about my experience, projects, and technical background.
-            </p>
           </div>
-          <div class="hero-profile reveal">
-            <img
-              src="@/assets/img/profile-img.jpg"
-              alt="Vireak Roeun profile photo"
-              width="520"
-              height="520"
-              loading="eager"
-              fetchpriority="high"
-            />
-            <div class="profile-meta">
-              <p>Phnom Penh, Cambodia</p>
-              <span>Institute of Banking and Finance</span>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      <section id="about" class="section content-section">
-        <div class="container">
-          <div class="section-head reveal">
-            <p class="eyebrow">About</p>
-            <h2>Production-minded engineering across app and infrastructure</h2>
+          <div class="tile tile-photo reveal" :style="revealDelay(1)">
+            <picture>
+              <source :srcset="profileWebp" type="image/webp" />
+              <img
+                :src="profileJpg"
+                alt="Vireak Roeun profile photo"
+                width="520"
+                height="520"
+                decoding="async"
+                fetchpriority="high"
+              />
+            </picture>
           </div>
-          <div class="about-grid">
-            <p class="lead reveal">
-              I am a Full-Stack Developer and DevOps Engineer based in Cambodia, currently working at the Institute
-              of Banking and Finance. I build and maintain business-critical systems using Laravel, Vue.js, Docker,
-              and AWS, with a strong focus on reliability, deployment automation, and operational clarity.
+
+          <div class="tile tile-status reveal" :style="revealDelay(2)">
+            <p class="status-line">
+              <span class="status-dot" aria-hidden="true"></span>
+              Open to freelance
             </p>
-            <ul class="highlight-list reveal">
-              <li><i class="bi bi-check2-circle"></i> Backend API design and integration for internal platforms</li>
-              <li><i class="bi bi-check2-circle"></i> CI/CD implementation with GitHub Actions for safer releases</li>
-              <li><i class="bi bi-check2-circle"></i> Containerized workloads and server management on Ubuntu/VPS</li>
-              <li><i class="bi bi-check2-circle"></i> Database architecture and data validation with MySQL</li>
+            <p class="tile-note">
+              Currently Senior DevOps Officer at <strong>Institute of Banking and Finance</strong>
+            </p>
+          </div>
+
+          <div class="tile tile-stack reveal" :style="revealDelay(2)">
+            <p class="tile-label">Core stack</p>
+            <ul class="stack-list" role="list">
+              <li v-for="item in heroStack" :key="item.label">
+                <span class="stack-icon"><i :class="item.icon" aria-hidden="true"></i></span>
+                {{ item.label }}
+              </li>
+            </ul>
+          </div>
+
+          <a
+            class="tile tile-location reveal"
+            :href="locationLink"
+            target="_blank"
+            rel="noopener noreferrer"
+            :style="revealDelay(3)"
+          >
+            <p class="tile-label"><i class="bi bi-geo-alt-fill" aria-hidden="true"></i> Location</p>
+            <p class="location-city">Phnom Penh</p>
+            <p class="tile-note">Cambodia</p>
+            <span class="tile-corner" aria-hidden="true"><i class="bi bi-arrow-up-right"></i></span>
+          </a>
+
+          <div class="tile tile-socials reveal" :style="revealDelay(4)">
+            <p class="tile-label">Find me</p>
+            <ul class="social-grid" role="list">
+              <li v-for="item in heroSocials" :key="item.label">
+                <a
+                  :href="item.href"
+                  v-bind="item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {}"
+                >
+                  <i :class="item.icon" aria-hidden="true"></i>
+                  <span>{{ item.label }}</span>
+                </a>
+              </li>
             </ul>
           </div>
         </div>
       </section>
 
-      <section id="experience" class="section content-section">
+      <!-- Course banner: both courses -->
+      <section class="course-banner-section" aria-labelledby="course-banner-title">
         <div class="container">
-          <div class="section-head reveal">
-            <p class="eyebrow">Experience</p>
-            <h2>Career timeline</h2>
+          <div class="tile course-banner course-banner-duo">
+            <div class="course-banner-body">
+              <p class="eyebrow eyebrow-accent">
+                <i class="bi bi-mortarboard-fill" aria-hidden="true"></i>
+                Courses · Enrolling now
+              </p>
+              <h2 id="course-banner-title">Learn Full-Stack or DevOps with me</h2>
+              <p class="tile-note">Small classes in English &amp; Khmer. A class opens once 4 students enroll.</p>
+              <router-link class="btn btn-accent btn-lg course-banner-all" to="/courses">
+                See all courses
+                <i class="bi bi-arrow-right" aria-hidden="true"></i>
+              </router-link>
+            </div>
+            <div class="course-banner-cards">
+              <router-link class="course-mini" to="/courses/full-stack-teaching-course">
+                <span class="course-mini-icon" aria-hidden="true"><i class="bi bi-stack"></i></span>
+                <span class="course-mini-body">
+                  <strong>Full-Stack</strong>
+                  <span>60 h · Laravel + Vue · Class Manager capstone</span>
+                </span>
+                <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+              </router-link>
+              <router-link class="course-mini" to="/courses/devops-course">
+                <span class="course-mini-icon" aria-hidden="true"><i class="bi bi-hdd-network"></i></span>
+                <span class="course-mini-body">
+                  <strong>DevOps</strong>
+                  <span>Docker · CI/CD · Coolify · AWS</span>
+                </span>
+                <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+              </router-link>
+            </div>
           </div>
-          <div class="timeline">
-            <article class="timeline-item reveal" v-for="job in experiences" :key="job.role + job.company">
-              <div class="timeline-head">
-                <h3>{{ job.role }}</h3>
-                <span>{{ job.period }}</span>
+        </div>
+      </section>
+
+      <!-- About -->
+      <section id="about" class="section" aria-labelledby="about-title">
+        <div class="container about-layout">
+          <div>
+            <SectionHead
+              index="01"
+              eyebrow="About"
+              title="Production-minded engineering across app, platform, and infrastructure"
+              title-id="about-title"
+            />
+            <p class="lead reveal">
+              I am a Full-Stack Developer and DevOps Engineer based in Cambodia, currently Senior DevOps Officer and
+              Team Lead Digital &amp; Information at the Institute of Banking and Finance. I build and operate
+              business-critical systems with Laravel, Vue.js, Quasar, Docker, Coolify, and AWS — focused on reliable
+              releases, clear operations, and careful shipping.
+            </p>
+          </div>
+          <ul class="highlight-list tile reveal" role="list" :style="revealDelay(1)">
+            <li v-for="item in highlights" :key="item.text">
+              <span class="highlight-icon"><i :class="item.icon" aria-hidden="true"></i></span>
+              {{ item.text }}
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Experience -->
+      <section id="experience" class="section" aria-labelledby="experience-title">
+        <div class="container">
+          <SectionHead index="02" eyebrow="Experience" title="Career timeline" title-id="experience-title" />
+          <ol class="exp-list" role="list">
+            <li
+              v-for="(job, index) in experiences"
+              :key="job.role + job.company"
+              class="exp-item reveal"
+              :style="revealDelay(index)"
+            >
+              <div class="exp-meta">
+                <span class="exp-period">{{ job.period }}</span>
+                <span v-if="job.period.includes('Present')" class="badge badge-live">
+                  <span class="status-dot" aria-hidden="true"></span>
+                  Current
+                </span>
               </div>
-              <p class="company">{{ job.company }}</p>
-              <ul>
-                <li v-for="item in job.responsibilities" :key="item">{{ item }}</li>
+              <div class="exp-body">
+                <h3>{{ job.role }}</h3>
+                <p class="exp-company">{{ job.company }}</p>
+                <ul class="exp-points">
+                  <li v-for="item in job.responsibilities" :key="item">{{ item }}</li>
+                </ul>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- Skills -->
+      <section id="skills" class="section" aria-labelledby="skills-title">
+        <div class="container">
+          <SectionHead index="03" eyebrow="Skills" title="Full-stack, platform, and DevOps capabilities" title-id="skills-title" />
+          <div class="skills-grid">
+            <article
+              v-for="(group, index) in skillGroups"
+              :key="group.title"
+              class="tile skill-tile reveal"
+              :class="{ 'skill-tile-accent': group.title.startsWith('DevOps') }"
+              :style="revealDelay(index)"
+            >
+              <div class="skill-head">
+                <span class="icon-badge"><i :class="group.icon" aria-hidden="true"></i></span>
+                <h3>{{ group.title }}</h3>
+              </div>
+              <ul class="chips" role="list">
+                <li class="chip" v-for="item in group.items" :key="item">{{ item }}</li>
               </ul>
             </article>
           </div>
         </div>
       </section>
 
-      <section id="skills" class="section content-section">
+      <!-- Projects -->
+      <section id="projects" class="section" aria-labelledby="projects-title">
         <div class="container">
-          <div class="section-head reveal">
-            <p class="eyebrow">Skills</p>
-            <h2>Full-stack and DevOps capabilities</h2>
-          </div>
-          <div class="skills-grid">
-            <article class="skill-card reveal" v-for="group in skillGroups" :key="group.title">
-              <div class="skill-card-top">
-                <i :class="group.icon"></i>
-                <h3>{{ group.title }}</h3>
-              </div>
-              <div class="chip-wrap">
-                <span class="chip" v-for="item in group.items" :key="item">{{ item }}</span>
-              </div>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <section id="projects" class="section content-section">
-        <div class="container">
-          <div class="section-head reveal">
-            <p class="eyebrow">Projects</p>
-            <h2>Selected work and real systems</h2>
-          </div>
+          <SectionHead index="04" eyebrow="Projects" title="Selected work and real systems" title-id="projects-title" />
           <div class="projects-grid">
-            <article class="project-card reveal" v-for="project in projects" :key="project.title">
-              <h3>{{ project.title }}</h3>
-              <p>{{ project.description }}</p>
-              <div class="chip-wrap">
-                <span class="chip" v-for="tech in project.tech" :key="tech">{{ tech }}</span>
+            <article
+              v-for="(project, index) in projects"
+              :key="project.title"
+              class="tile project-card reveal"
+              :class="{ 'project-featured': index === 0 }"
+              :style="revealDelay(index)"
+            >
+              <i v-if="index === 0" class="bi bi-speedometer2 project-watermark" aria-hidden="true"></i>
+              <div class="project-top">
+                <span class="icon-badge" :class="{ 'icon-badge-lg': index === 0 }">
+                  <i :class="project.icon" aria-hidden="true"></i>
+                </span>
+                <span v-if="index === 0" class="badge badge-accent">Featured</span>
+                <span v-else class="project-index" aria-hidden="true">{{ String(index + 1).padStart(2, '0') }}</span>
               </div>
+              <h3>{{ project.title }}</h3>
+              <p class="project-desc">{{ project.description }}</p>
+              <ul class="chips" role="list" :aria-label="`${project.title} tech stack`">
+                <li class="chip" v-for="tech in project.tech" :key="tech">{{ tech }}</li>
+              </ul>
+              <router-link v-if="project.link" class="project-link" :to="project.link.to">
+                {{ project.link.label }}
+                <i class="bi bi-arrow-right" aria-hidden="true"></i>
+              </router-link>
+              <p v-else class="project-soon">
+                <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+                Case study soon
+              </p>
             </article>
           </div>
         </div>
       </section>
 
-      <section id="devops" class="section content-section">
+      <!-- DevOps -->
+      <section id="devops" class="section" aria-labelledby="devops-title">
         <div class="container">
-          <div class="section-head reveal">
-            <p class="eyebrow">DevOps</p>
-            <h2>Infrastructure and deployment workflow</h2>
-          </div>
+          <SectionHead index="05" eyebrow="DevOps" title="Infrastructure and deployment workflow" title-id="devops-title" />
           <div class="devops-grid">
-            <article class="devops-card reveal" v-for="item in devopsCards" :key="item.title">
-              <i :class="item.icon"></i>
+            <article
+              v-for="(item, index) in devopsCards"
+              :key="item.title"
+              class="tile devops-tile reveal"
+              :style="revealDelay(index)"
+            >
+              <span class="icon-badge"><i :class="item.icon" aria-hidden="true"></i></span>
               <h3>{{ item.title }}</h3>
               <p>{{ item.text }}</p>
             </article>
           </div>
-          <div class="arch-diagram reveal" aria-label="Deployment architecture flow">
-            <span>Vue Frontend</span>
-            <i class="bi bi-arrow-right"></i>
-            <span>Laravel API</span>
-            <i class="bi bi-arrow-right"></i>
-            <span>Docker Container</span>
-            <i class="bi bi-arrow-right"></i>
-            <span>AWS / VPS</span>
-            <i class="bi bi-arrow-right"></i>
-            <span>GitHub Actions CI/CD</span>
+          <div class="flow tile reveal">
+            <p class="tile-label">Deployment architecture flow</p>
+            <ol class="flow-steps" role="list">
+              <li v-for="(step, index) in flowSteps" :key="step.label" class="flow-step">
+                <span class="flow-node">
+                  <i :class="step.icon" aria-hidden="true"></i>
+                  {{ step.label }}
+                </span>
+                <i v-if="index < flowSteps.length - 1" class="bi bi-arrow-right flow-arrow" aria-hidden="true"></i>
+              </li>
+            </ol>
           </div>
         </div>
       </section>
 
-      <section id="education" class="section content-section">
+      <!-- Education -->
+      <section id="education" class="section" aria-labelledby="education-title">
         <div class="container">
-          <div class="section-head reveal">
-            <p class="eyebrow">Education</p>
-            <h2>Academic background</h2>
-          </div>
-          <div class="education-grid">
-            <article class="edu-card reveal" v-for="item in education" :key="item.school">
-              <i class="bi bi-mortarboard-fill"></i>
-              <h3>{{ item.degree }}</h3>
-              <p>{{ item.school }}</p>
-              <span>{{ item.period }}</span>
+          <SectionHead index="06" eyebrow="Education" title="Academic background" title-id="education-title" />
+          <div class="edu-grid">
+            <article
+              v-for="(item, index) in education"
+              :key="item.school"
+              class="tile edu-tile reveal"
+              :style="revealDelay(index)"
+            >
+              <span class="icon-badge"><i class="bi bi-mortarboard-fill" aria-hidden="true"></i></span>
+              <div>
+                <h3>{{ item.degree }}</h3>
+                <p>{{ item.school }}</p>
+              </div>
+              <span class="edu-period">{{ item.period }}</span>
             </article>
           </div>
         </div>
       </section>
 
-      <section id="contact" class="section content-section">
+      <!-- Contact: closing CTA band -->
+      <section id="contact" class="section section-contact" aria-labelledby="contact-title">
         <div class="container">
-          <div class="section-head reveal">
-            <p class="eyebrow">Contact</p>
-            <h2>Let’s build reliable products together</h2>
-          </div>
-          <div class="contact-grid">
-            <div class="contact-card reveal" v-for="item in contacts" :key="item.label">
-              <i :class="item.icon"></i>
-              <h3>{{ item.label }}</h3>
-              <a :href="item.href" target="_blank" rel="noopener noreferrer">{{ item.value }}</a>
+          <div class="cta-band reveal">
+            <p class="eyebrow eyebrow-invert">
+              <span class="eyebrow-index">07</span>
+              Contact
+            </p>
+            <h2 id="contact-title">Let’s build reliable products together</h2>
+            <div class="cta-actions">
+              <a
+                v-for="(item, index) in ctaContacts"
+                :key="item.label"
+                class="btn btn-lg"
+                :class="index === 0 ? 'btn-light' : 'btn-outline-light'"
+                :href="item.href"
+                v-bind="item.href.startsWith('mailto:') ? {} : { target: '_blank', rel: 'noopener noreferrer' }"
+              >
+                <i :class="item.icon" aria-hidden="true"></i>
+                {{ item.label }}
+              </a>
+              <router-link class="btn btn-lg btn-outline-light" to="/courses">
+                <i class="bi bi-journal-code" aria-hidden="true"></i>
+                Courses
+              </router-link>
             </div>
+            <ul class="cta-details" role="list">
+              <li v-for="item in contacts" :key="item.label">
+                <span class="cta-detail-label">
+                  <i :class="item.icon" aria-hidden="true"></i>
+                  {{ item.label }}
+                </span>
+                <a
+                  :href="item.href"
+                  v-bind="item.href.startsWith('mailto:') ? {} : { target: '_blank', rel: 'noopener noreferrer' }"
+                >
+                  {{ item.value }}
+                </a>
+              </li>
+            </ul>
           </div>
         </div>
       </section>
     </main>
 
-    <button class="scroll-top" type="button" aria-label="Scroll to top" @click="scrollToTop" v-show="showScrollTop">
-      <i class="bi bi-arrow-up"></i>
-    </button>
+    <footer id="site-footer" class="site-footer">
+      <div class="container footer-inner">
+        <a class="brand" href="#hero" @click="handleNavClick('hero')">
+          <BrandMark :size="28" />
+          <span class="brand-name">Vireak Roeun</span>
+        </a>
+        <p class="footer-copy">© {{ currentYear }} Vireak Roeun · Phnom Penh, Cambodia</p>
+        <a class="footer-top" href="#hero" @click="handleNavClick('hero')">
+          Back to top
+          <i class="bi bi-arrow-up" aria-hidden="true"></i>
+        </a>
+      </div>
+    </footer>
   </div>
 </template>
 
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue';
+import BrandMark from '@/components/BrandMark.vue';
+import SectionHead from '@/components/SectionHead.vue';
+import profileWebp from '@/assets/img/profile-520.webp';
+import profileJpg from '@/assets/img/profile-520.jpg';
 
 const navItems = [
   { id: 'hero', label: 'Home', href: '#hero' },
@@ -258,51 +447,133 @@ const navItems = [
   { id: 'contact', label: 'Contact', href: '#contact' }
 ];
 
+// Top nav shows every section except Home (the logo links back to the top).
+const menuItems = navItems.filter((item) => item.id !== 'hero');
+// Desktop nav drops Education to make room for the Course pill (still in the mobile menu and page flow).
+const desktopMenuItems = menuItems.filter((item) => item.id !== 'education');
+
 const socialLinks = {
-  github: 'https://github.com/VireakGumi',
+  github: 'https://github.com/rernvirak-max',
   telegram: 'https://t.me/R_Vireak',
   linkedin: 'https://www.linkedin.com/in/vireak-roeun-6751ab29a/',
   email: 'mailto:roeunvireak0@gmail.com'
 };
 
+const heroSocials = [
+  { label: 'GitHub', href: socialLinks.github, icon: 'bi bi-github', external: true },
+  { label: 'Telegram', href: socialLinks.telegram, icon: 'bi bi-telegram', external: true },
+  { label: 'LinkedIn', href: socialLinks.linkedin, icon: 'bi bi-linkedin', external: true },
+  { label: 'Email', href: socialLinks.email, icon: 'bi bi-envelope-fill', external: false }
+];
+
+// Hero "core stack" tile: technologies already listed in the tagline and skills.
+const heroStack = [
+  { label: 'Laravel', icon: 'bi bi-hdd-stack' },
+  { label: 'Vue.js', icon: 'bi bi-window-stack' },
+  { label: 'Quasar', icon: 'bi bi-grid-1x2' },
+  { label: 'AWS', icon: 'bi bi-cloud-check' },
+  { label: 'Docker', icon: 'bi bi-box-seam' },
+  { label: 'Coolify', icon: 'bi bi-lightning-charge' }
+];
+
+const highlights = [
+  { icon: 'bi bi-diagram-3', text: 'Backend API design and multi-service platform integration' },
+  { icon: 'bi bi-git', text: 'CI/CD with GitHub Actions and staging-to-production checks' },
+  { icon: 'bi bi-box-seam', text: 'Docker, Coolify, and server management on Ubuntu/VPS' },
+  { icon: 'bi bi-people', text: 'Mentoring, code review, and careful production shipping' },
+  { icon: 'bi bi-translate', text: 'English (professional) · Khmer (native)' }
+];
+
 const skillGroups = [
-  { title: 'Backend', icon: 'bi bi-hdd-stack', items: ['PHP', 'Laravel', 'RESTful APIs', 'Node.js'] },
-  { title: 'Frontend', icon: 'bi bi-window-stack', items: ['Vue.js', 'Quasar', 'HTML', 'CSS', 'JavaScript'] },
-  { title: 'Database', icon: 'bi bi-database', items: ['MySQL', 'Database Architecture', 'Data Validation'] },
   {
-    title: 'DevOps',
+    title: 'Backend',
+    icon: 'bi bi-hdd-stack',
+    items: ['PHP', 'Laravel', 'RESTful API design', 'Node.js', 'Auth & multi-service platforms']
+  },
+  {
+    title: 'Frontend',
+    icon: 'bi bi-window-stack',
+    items: ['Vue.js', 'Quasar', 'HTML', 'CSS', 'JavaScript', 'PWA-oriented UI', 'Master-dashboard / CRM UI']
+  },
+  {
+    title: 'Database',
+    icon: 'bi bi-database',
+    items: ['MySQL', 'Relational modeling', 'Data validation & integrity']
+  },
+  {
+    title: 'DevOps & infrastructure',
     icon: 'bi bi-cloud-check',
-    items: ['Docker', 'CI/CD Pipelines', 'GitHub Actions', 'AWS', 'VPS Deployment', 'Ubuntu Server']
+    items: [
+      'Docker',
+      'CI/CD & GitHub Actions',
+      'AWS & VPS deployment',
+      'Ubuntu Server / Linux',
+      'Coolify',
+      'Nixpacks',
+      'Cloudflare Tunnel',
+      'Domain / DNS / SSL',
+      'Backups & rollback-ready releases',
+      'Staging → production checks',
+      'GitHub (branches/PRs)',
+      'Self-hosted AI (Ollama, Open WebUI)'
+    ]
   }
 ];
 
 const projects = [
   {
-    title: 'IBF Dashboard Platform',
+    title: 'IBF Dashboard & multi-service platform',
+    icon: 'bi bi-speedometer2',
     description:
-      'Designed and maintained backend API features for the Institute of Banking and Finance dashboard, then integrated those APIs into a Vue + Quasar frontend.',
-    tech: ['Laravel', 'REST API', 'Vue.js', 'Quasar', 'MySQL']
+      'Auth, product, events, and CRM engines with a master-dashboard Quasar UI, backed by Laravel APIs for the Institute of Banking and Finance.',
+    tech: ['Laravel', 'Vue.js', 'Quasar', 'MySQL', 'REST API']
+  },
+  {
+    title: 'MaxTune',
+    icon: 'bi bi-music-note-beamed',
+    description:
+      'Personal music platform with a Vue/Quasar SPA and Laravel engine, hosted on Coolify with Docker.',
+    tech: ['Laravel', 'Vue.js', 'Quasar', 'Coolify', 'Docker']
+  },
+  {
+    title: 'Client DevOps setup & training',
+    icon: 'bi bi-hdd-network',
+    description:
+      'Delivered VPS, Coolify, domain/SSL, and CI/CD setup for clients, plus an 8-session weekend training package.',
+    tech: ['Coolify', 'Docker', 'GitHub Actions', 'Ubuntu', 'DNS/SSL']
+  },
+  {
+    title: 'Full-stack teaching course',
+    icon: 'bi bi-journal-code',
+    description:
+      '60-hour Laravel + Vue curriculum with a Class Manager capstone, delivered bilingual in English and Khmer.',
+    tech: ['Laravel', 'Vue.js'],
+    link: { to: '/courses/full-stack-teaching-course', label: 'View course' }
   },
   {
     title: 'Restaurant Display Website',
+    icon: 'bi bi-shop',
     description:
       'Built a production-ready website for restaurant presentation and business visibility with backend-driven content management.',
     tech: ['Laravel', 'Vue.js', 'MySQL']
   },
   {
     title: 'Farm Management System',
+    icon: 'bi bi-flower1',
     description:
       'Developed system modules for farm operations, data tracking, and reporting workflows with reliable backend processing.',
     tech: ['Laravel', 'MySQL', 'JavaScript']
   },
   {
     title: 'Team Management System',
+    icon: 'bi bi-people',
     description:
       'Implemented team workflow features, role-based operations, and structured data management for internal coordination.',
     tech: ['Laravel', 'REST API', 'MySQL']
   },
   {
     title: 'AWS Hosting & CI/CD Services',
+    icon: 'bi bi-cloud-check',
     description:
       'Provided deployment and hosting services for local company projects using AWS infrastructure, Dockerized services, and automated CI/CD pipelines.',
     tech: ['AWS', 'Docker', 'GitHub Actions', 'Ubuntu Server', 'VPS']
@@ -330,6 +601,14 @@ const devopsCards = [
     icon: 'bi bi-terminal',
     text: 'Configured Ubuntu servers, hardened runtime setup, and optimized service reliability.'
   }
+];
+
+const flowSteps = [
+  { label: 'Vue Frontend', icon: 'bi bi-window-stack' },
+  { label: 'Laravel API', icon: 'bi bi-hdd-stack' },
+  { label: 'Docker Container', icon: 'bi bi-box-seam' },
+  { label: 'AWS / VPS', icon: 'bi bi-cloud-arrow-up' },
+  { label: 'GitHub Actions CI/CD', icon: 'bi bi-git' }
 ];
 
 const experiences = [
@@ -402,8 +681,8 @@ const contacts = [
   },
   {
     label: 'GitHub',
-    value: 'github.com/VireakGumi',
-    href: 'https://github.com/VireakGumi',
+    value: 'github.com/rernvirak-max',
+    href: 'https://github.com/rernvirak-max',
     icon: 'bi bi-github'
   },
   {
@@ -414,27 +693,28 @@ const contacts = [
   }
 ];
 
-const showScrollTop = ref(false);
+const ctaContacts = contacts.filter((item) => ['Email', 'Telegram', 'LinkedIn'].includes(item.label));
+const locationLink = contacts.find((item) => item.label === 'Location').href;
+
+const currentYear = new Date().getFullYear();
 const activeSection = ref('hero');
 const isMenuOpen = ref(false);
 const isScrolled = ref(false);
 let revealObserver;
 
-const handleScroll = () => {
-  showScrollTop.value = window.scrollY > 500;
-  isScrolled.value = window.scrollY > 24;
-  updateActiveSection();
-};
-
-const scrollToTop = () => {
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-};
+// Light stagger for items in a grid (capped so long lists don't drag).
+const revealDelay = (index) => ({ '--reveal-delay': `${Math.min(index, 4) * 70}ms` });
 
 const updateActiveSection = () => {
-  const scrollPosition = window.scrollY + 140;
-  const sections = navItems.map((item) => item.id);
+  // Bottom of the page: the short contact section may never reach the offset line.
+  if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) {
+    activeSection.value = 'contact';
+    return;
+  }
 
-  for (const id of sections) {
+  const scrollPosition = window.scrollY + 120;
+
+  for (const { id } of navItems) {
     const section = document.getElementById(id);
     if (!section) {
       continue;
@@ -448,6 +728,20 @@ const updateActiveSection = () => {
       return;
     }
   }
+
+};
+
+let ticking = false;
+const handleScroll = () => {
+  if (ticking) {
+    return;
+  }
+  ticking = true;
+  window.requestAnimationFrame(() => {
+    isScrolled.value = window.scrollY > 8;
+    updateActiveSection();
+    ticking = false;
+  });
 };
 
 const toggleMenu = () => {
@@ -463,8 +757,25 @@ const handleNavClick = (id) => {
   closeMenu();
 };
 
+const handleKeydown = (event) => {
+  if (event.key === 'Escape' && isMenuOpen.value) {
+    closeMenu();
+    document.querySelector('.nav-toggle')?.focus();
+  }
+};
+
+// Close the mobile menu if the viewport grows past the mobile breakpoint.
+const handleResize = () => {
+  if (isMenuOpen.value && window.innerWidth >= 1024) {
+    closeMenu();
+  }
+};
+
 onMounted(() => {
-  window.addEventListener('scroll', handleScroll);
+  window.addEventListener('scroll', handleScroll, { passive: true });
+  window.addEventListener('keydown', handleKeydown);
+  window.addEventListener('resize', handleResize);
+  isScrolled.value = window.scrollY > 8;
   updateActiveSection();
 
   revealObserver = new IntersectionObserver(
@@ -476,7 +787,7 @@ onMounted(() => {
         }
       });
     },
-    { threshold: 0.15 }
+    { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }
   );
 
   document.querySelectorAll('.reveal').forEach((el) => revealObserver.observe(el));
@@ -484,6 +795,8 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', handleScroll);
+  window.removeEventListener('keydown', handleKeydown);
+  window.removeEventListener('resize', handleResize);
   if (revealObserver) {
     revealObserver.disconnect();
   }

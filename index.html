@@ -3,22 +3,75 @@
 
 <head>
   <meta charset="UTF-8">
-  <link rel="icon" href="/icon.ico">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Vireak Roeun - Senior DevOps Officer and Full-Stack Developer building scalable systems with Laravel, Vue, Docker, and AWS.">
   <title>Vireak Roeun | Full-Stack Developer & DevOps Engineer</title>
+  <meta name="description" content="Vireak Roeun - Senior DevOps Officer and Full-Stack Developer building scalable systems with Laravel, Vue, Docker, and AWS.">
+  <meta name="author" content="Vireak Roeun">
+  <meta name="theme-color" content="#fafaf9">
+  <meta name="color-scheme" content="light">
+  <link rel="canonical" href="https://roeun-vireak.mxlab.site/">
 
-  <!-- Fonts -->
-  <link href="https://fonts.googleapis.com" rel="preconnect">
-  <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap"
-    rel="stylesheet">
+  <!-- Icons -->
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192">
+  <link rel="icon" href="/icon-512.png" type="image/png" sizes="512x512">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+
+  <!-- Open Graph / Twitter -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Vireak Roeun">
+  <meta property="og:title" content="Vireak Roeun | Full-Stack Developer & DevOps Engineer">
+  <meta property="og:description" content="Vireak Roeun - Senior DevOps Officer and Full-Stack Developer building scalable systems with Laravel, Vue, Docker, and AWS.">
+  <meta property="og:url" content="https://roeun-vireak.mxlab.site/">
+  <meta property="og:image" content="https://roeun-vireak.mxlab.site/og.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Vireak Roeun — Full-Stack & DevOps Engineer">
+  <meta property="og:locale" content="en_US">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Vireak Roeun | Full-Stack Developer & DevOps Engineer">
+  <meta name="twitter:description" content="Vireak Roeun - Senior DevOps Officer and Full-Stack Developer building scalable systems with Laravel, Vue, Docker, and AWS.">
+  <meta name="twitter:image" content="https://roeun-vireak.mxlab.site/og.png">
+  <meta name="twitter:image:alt" content="Vireak Roeun — Full-Stack & DevOps Engineer">
+
+  <!-- Self-hosted fonts (Outfit, latin subset): preload the two weights used above the fold -->
+  <link rel="preload" href="/node_modules/@fontsource/outfit/files/outfit-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/node_modules/@fontsource/outfit/files/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+
+  <!-- Structured data: only facts already shown on the site -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "Vireak Roeun",
+    "url": "https://roeun-vireak.mxlab.site/",
+    "image": "https://roeun-vireak.mxlab.site/og.png",
+    "jobTitle": "Senior DevOps Officer & Full-Stack Developer",
+    "worksFor": {
+      "@type": "Organization",
+      "name": "Institute of Banking and Finance"
+    },
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Phnom Penh",
+      "addressCountry": "KH"
+    },
+    "knowsAbout": ["Laravel", "Vue.js", "Docker", "AWS", "CI/CD", "GitHub Actions", "MySQL"],
+    "sameAs": [
+      "https://github.com/rernvirak-max",
+      "https://www.linkedin.com/in/vireak-roeun-6751ab29a/",
+      "https://t.me/R_Vireak"
+    ]
+  }
+  </script>
 </head>
 
 <body>
   <div id="app"></div>
-  <script type="module" src="src/main.js" defer></script>
+  <script type="module" src="/src/main.js"></script>
 </body>
 
 </html>
