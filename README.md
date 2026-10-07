@@ -73,3 +73,18 @@ Overwrite `public/Vireak-Roeun-CV.pdf` (same file name keeps the Download CV lin
 - Social image: `public/og.png` is 1200×630. Re-generate it if the name/title changes.
 - Profile image: `src/assets/img/profile-520.webp` (primary) and `profile-520.jpg` (fallback), 520×520.
 - `prefers-reduced-motion` disables the reveal/hover animations.
+
+## Admin area (`/admin`)
+
+Private page for managing course enrollment requests from the engine API. It is not linked from the
+public site, has `noindex, nofollow`, and is not in `sitemap.xml`.
+
+- Requires `VITE_API_URL` (engine base URL). Without it the page shows "API not configured".
+- The engine's `FRONTEND_URLS` must include this site's origin (CORS).
+- Create the admin on the engine: `php artisan admin:create you@example.com` (prompts for password).
+- `/admin/login` → Sanctum token → `/admin` (stats, search/filter, detail panel, status + note, delete, CSV export).
+
+**Token storage trade-off:** the bearer token is kept in `localStorage` so a static host works without
+cookies/same-site setup. Any XSS on this origin could read it, so the token expires after 14 days, is
+revoked on logout, and `php artisan admin:create <email>` (re-run) revokes all tokens. A stricter setup
+would be Sanctum SPA cookie auth on a shared parent domain.

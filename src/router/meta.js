@@ -15,5 +15,18 @@ export const routeMeta = {
     description:
       'Enquire about Vireak Roeun’s 60-hour Laravel + Vue full-stack course with a Class Manager capstone, taught in English and Khmer.',
     canonical: `${SITE_URL}/course/`
+  },
+  // Private admin pages: noindex, not linked, not in sitemap.xml.
+  adminLogin: {
+    title: 'Admin sign in | Vireak Roeun',
+    description: 'Private admin area.',
+    canonical: `${SITE_URL}/admin/login/`,
+    noindex: true
+  },
+  admin: {
+    title: 'Course requests | Admin',
+    description: 'Private admin area.',
+    canonical: `${SITE_URL}/admin/`,
+    noindex: true
   }
 }

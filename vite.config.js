@@ -10,7 +10,11 @@ import { routeMeta } from './src/router/meta.js'
 // write dist/<route>/index.html — a copy of the built index.html with that route's title,
 // description and canonical/Open Graph URLs — so direct visits and refreshes work and
 // link previews show the right text.
-const staticRoutes = [{ path: 'course', meta: routeMeta.course }]
+const staticRoutes = [
+  { path: 'course', meta: routeMeta.course },
+  { path: 'admin', meta: routeMeta.admin },
+  { path: 'admin/login', meta: routeMeta.adminLogin },
+]
 
 const escapeAttr = (value) =>
   value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -37,6 +41,7 @@ function staticRoutePages() {
           .replace(/(<meta name="twitter:title" content=")[^"]*(")/, `$1${title}$2`)
           .replace(/(<meta name="twitter:description" content=")[^"]*(")/, `$1${description}$2`)
           .replace(/(<link rel="canonical" href=")[^"]*(")/, `$1${meta.canonical}$2`)
+          .replace('</head>', meta.noindex ? '  <meta name="robots" content="noindex, nofollow">\n</head>' : '</head>')
         await mkdir(resolve(outDir, path), { recursive: true })
         await writeFile(resolve(outDir, path, 'index.html'), page)
       }
