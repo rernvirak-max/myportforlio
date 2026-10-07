@@ -18,11 +18,23 @@ export const routeMeta = {
       'Vireak Roeun - Senior DevOps Officer and Full-Stack Developer building scalable systems with Laravel, Vue, Docker, and AWS.',
     canonical: `${SITE_URL}/`
   },
-  course: {
-    title: 'Full-stack teaching course enquiry | Vireak Roeun',
+  courses: {
+    title: 'Courses: Full-Stack & DevOps | Vireak Roeun',
     description:
-      'Enquire about Vireak Roeun’s 60-hour Laravel + Vue full-stack course with a Class Manager capstone, taught in English and Khmer.',
-    canonical: `${SITE_URL}/course/`
+      'Small-group Full-Stack (Laravel + Vue) and DevOps courses by Vireak Roeun, taught in English and Khmer. Classes open at 4 students.',
+    canonical: `${SITE_URL}/courses/`
+  },
+  courseDetail: {
+    title: 'Course | Vireak Roeun',
+    description: 'Course details, upcoming classes, and enrollment.',
+    canonical: `${SITE_URL}/courses/`
+  },
+  // Legacy /course → redirects client-side; static page keeps old links/previews working.
+  course: {
+    title: 'Full-stack teaching course | Vireak Roeun',
+    description:
+      '60-hour Laravel + Vue full-stack course with a Class Manager capstone, taught in English and Khmer. Classes open at 4 students.',
+    canonical: `${SITE_URL}/courses/full-stack-teaching-course/`
   },
   // Private admin pages: noindex, not linked, not in sitemap.xml.
   adminLogin: {
@@ -38,4 +50,20 @@ export const routeMeta = {
   adminStudents: adminMeta('Students', '/admin/students/'),
   adminContent: adminMeta('Content', '/admin/content/'),
   adminSettings: adminMeta('Settings', '/admin/settings/'),
+}
+
+// Public course detail pages known at build time (baked into dist/courses/<slug>/index.html).
+export const courseMetaBySlug = {
+  'full-stack-teaching-course': {
+    title: 'Full-stack teaching course (Laravel + Vue) | Vireak Roeun',
+    description:
+      '60-hour Laravel + Vue course with a Class Manager capstone, taught in English and Khmer. Request a seat — classes open at 4 students.',
+    canonical: `${SITE_URL}/courses/full-stack-teaching-course/`
+  },
+  'devops-course': {
+    title: 'DevOps course (Docker, CI/CD, Coolify, AWS) | Vireak Roeun',
+    description:
+      'DevOps course by Vireak Roeun covering Docker, CI/CD, Coolify, Nixpacks, AWS, and Linux servers. Request a seat — classes open at 4 students.',
+    canonical: `${SITE_URL}/courses/devops-course/`
+  },
 }

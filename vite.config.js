@@ -4,7 +4,7 @@ import { resolve } from 'node:path'
 
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import { routeMeta } from './src/router/meta.js'
+import { courseMetaBySlug, routeMeta } from './src/router/meta.js'
 
 // The host serves dist/ as plain static files (no SPA rewrites). For every extra route we
 // write dist/<route>/index.html — a copy of the built index.html with that route's title,
@@ -12,6 +12,8 @@ import { routeMeta } from './src/router/meta.js'
 // link previews show the right text.
 const staticRoutes = [
   { path: 'course', meta: routeMeta.course },
+  { path: 'courses', meta: routeMeta.courses },
+  ...Object.entries(courseMetaBySlug).map(([slug, meta]) => ({ path: `courses/${slug}`, meta })),
   { path: 'admin', meta: routeMeta.adminOverview },
   { path: 'admin/login', meta: routeMeta.adminLogin },
   { path: 'admin/overview', meta: routeMeta.adminOverview },

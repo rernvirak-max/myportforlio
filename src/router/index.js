@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
-import { routeMeta } from './meta.js'
+import { courseMetaBySlug, routeMeta } from './meta.js'
 import { getToken } from '../admin/api.js'
 
 const router = createRouter({
@@ -13,10 +13,22 @@ const router = createRouter({
       meta: routeMeta.home,
     },
     {
+      path: '/courses',
+      name: 'courses',
+      component: () => import('../views/CoursesView.vue'),
+      meta: routeMeta.courses,
+    },
+    {
+      path: '/courses/:slug',
+      name: 'course-detail',
+      component: () => import('../views/CourseDetailView.vue'),
+      meta: routeMeta.courseDetail,
+    },
+    {
+      // Old single-course URL (shared links, homepage #enroll) → Full-Stack course page.
       path: '/course',
       name: 'course',
-      component: () => import('../views/CourseView.vue'),
-      meta: routeMeta.course,
+      redirect: (to) => ({ path: '/courses/full-stack-teaching-course', hash: to.hash, query: to.query }),
     },
     {
       path: '/admin/login',
@@ -129,7 +141,7 @@ const setMeta = (selector, attr, value) => {
 }
 
 router.afterEach((to) => {
-  const meta = to.meta
+  const meta = to.name === 'course-detail' ? courseMetaBySlug[to.params.slug] || to.meta : to.meta
   if (!meta?.title) {
     return
   }

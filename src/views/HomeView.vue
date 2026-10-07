@@ -23,9 +23,9 @@
         </nav>
 
         <div class="nav-actions">
-          <router-link class="btn btn-accent btn-sm nav-course" to="/course#enroll">
+          <router-link class="btn btn-accent btn-sm nav-course" to="/courses">
             <i class="bi bi-mortarboard-fill" aria-hidden="true"></i>
-            Course<span class="nav-course-extra"> · Enroll</span>
+            Courses<span class="nav-course-extra"> · Enroll</span>
           </router-link>
           <a class="btn btn-dark btn-sm nav-cv" href="/Vireak-Roeun-CV.pdf" download aria-label="Download CV">
             <i class="bi bi-download" aria-hidden="true"></i>
@@ -46,8 +46,8 @@
 
       <div id="mobile-menu" class="mobile-menu" :class="{ 'is-open': isMenuOpen }" :inert="!isMenuOpen">
         <nav class="container" aria-label="Mobile">
-          <router-link class="mobile-course" to="/course#enroll" @click="closeMenu">
-            <span><i class="bi bi-mortarboard-fill" aria-hidden="true"></i> Course · Enroll</span>
+          <router-link class="mobile-course" to="/courses" @click="closeMenu">
+            <span><i class="bi bi-mortarboard-fill" aria-hidden="true"></i> Courses · Enroll</span>
             <i class="bi bi-arrow-right" aria-hidden="true"></i>
           </router-link>
           <a
@@ -84,9 +84,9 @@
                 View work
                 <i class="bi bi-arrow-right" aria-hidden="true"></i>
               </a>
-              <router-link class="btn btn-ghost btn-lg" to="/course#enroll">
+              <router-link class="btn btn-ghost btn-lg" to="/courses">
                 <i class="bi bi-mortarboard" aria-hidden="true"></i>
-                Enroll in my course
+                See my courses
               </router-link>
               <a class="btn btn-ghost btn-lg" href="/Vireak-Roeun-CV.pdf" download>
                 <i class="bi bi-download" aria-hidden="true"></i>
@@ -159,32 +159,39 @@
         </div>
       </section>
 
-      <!-- Course banner -->
+      <!-- Course banner: both courses -->
       <section class="course-banner-section" aria-labelledby="course-banner-title">
         <div class="container">
-          <div class="tile course-banner">
+          <div class="tile course-banner course-banner-duo">
             <div class="course-banner-body">
               <p class="eyebrow eyebrow-accent">
                 <i class="bi bi-mortarboard-fill" aria-hidden="true"></i>
-                Online course · Enrolling now
+                Courses · Enrolling now
               </p>
-              <h2 id="course-banner-title">Full-stack teaching course</h2>
-              <ul class="course-chips" role="list" aria-label="Course highlights">
-                <li class="course-chip"><i class="bi bi-clock" aria-hidden="true"></i> 60 hours</li>
-                <li class="course-chip"><i class="bi bi-stack" aria-hidden="true"></i> Laravel + Vue</li>
-                <li class="course-chip"><i class="bi bi-translate" aria-hidden="true"></i> English &amp; Khmer</li>
-                <li class="course-chip"><i class="bi bi-kanban" aria-hidden="true"></i> Class Manager capstone</li>
-              </ul>
-            </div>
-            <div class="course-banner-actions">
-              <router-link class="btn btn-accent btn-lg" to="/course#enroll">
-                Enroll now
+              <h2 id="course-banner-title">Learn Full-Stack or DevOps with me</h2>
+              <p class="tile-note">Small classes in English &amp; Khmer. A class opens once 4 students enroll.</p>
+              <router-link class="btn btn-accent btn-lg course-banner-all" to="/courses">
+                See all courses
                 <i class="bi bi-arrow-right" aria-hidden="true"></i>
               </router-link>
-              <a class="btn btn-ghost btn-lg" href="https://t.me/R_Vireak" target="_blank" rel="noopener noreferrer">
-                <i class="bi bi-telegram" aria-hidden="true"></i>
-                Message on Telegram
-              </a>
+            </div>
+            <div class="course-banner-cards">
+              <router-link class="course-mini" to="/courses/full-stack-teaching-course">
+                <span class="course-mini-icon" aria-hidden="true"><i class="bi bi-stack"></i></span>
+                <span class="course-mini-body">
+                  <strong>Full-Stack</strong>
+                  <span>60 h · Laravel + Vue · Class Manager capstone</span>
+                </span>
+                <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+              </router-link>
+              <router-link class="course-mini" to="/courses/devops-course">
+                <span class="course-mini-icon" aria-hidden="true"><i class="bi bi-hdd-network"></i></span>
+                <span class="course-mini-body">
+                  <strong>DevOps</strong>
+                  <span>Docker · CI/CD · Coolify · AWS</span>
+                </span>
+                <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+              </router-link>
             </div>
           </div>
         </div>
@@ -382,9 +389,9 @@
                 <i :class="item.icon" aria-hidden="true"></i>
                 {{ item.label }}
               </a>
-              <router-link class="btn btn-lg btn-outline-light" :to="{ name: 'course' }">
+              <router-link class="btn btn-lg btn-outline-light" to="/courses">
                 <i class="bi bi-journal-code" aria-hidden="true"></i>
-                Course enquiry
+                Courses
               </router-link>
             </div>
             <ul class="cta-details" role="list">
@@ -541,7 +548,7 @@ const projects = [
     description:
       '60-hour Laravel + Vue curriculum with a Class Manager capstone, delivered bilingual in English and Khmer.',
     tech: ['Laravel', 'Vue.js'],
-    link: { to: { name: 'course' }, label: 'Course enquiry' }
+    link: { to: '/courses/full-stack-teaching-course', label: 'View course' }
   },
   {
     title: 'Restaurant Display Website',

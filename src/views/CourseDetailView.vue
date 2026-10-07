@@ -1,124 +1,133 @@
 <template>
-  <div class="page course-page">
+  <div class="page course-page course-detail">
     <a class="skip-link" href="#main">Skip to content</a>
+    <CourseHeader :back="{ to: '/courses', label: 'All courses' }">
+      <button class="btn btn-accent btn-sm" type="button" @click="goEnroll()">Enroll</button>
+    </CourseHeader>
 
-    <header class="site-header" :class="{ 'is-scrolled': isScrolled }">
-      <div class="container nav-bar">
-        <router-link class="brand" to="/" aria-label="Vireak Roeun, back to home">
-          <BrandMark :size="32" />
-          <span class="brand-name">Vireak Roeun</span>
-        </router-link>
-        <router-link class="btn btn-ghost btn-sm" to="/">
-          <i class="bi bi-arrow-left" aria-hidden="true"></i>
-          Back to home
-        </router-link>
-      </div>
-    </header>
+    <main id="main" class="container course-main">
+      <section v-if="notFound" class="tile course-notfound" aria-labelledby="nf-title">
+        <p class="tile-label">Course not found</p>
+        <h1 id="nf-title" class="course-h1">That course isn’t available.</h1>
+        <p class="tile-note">It may have been renamed or unpublished.</p>
+        <div class="hero-actions"><router-link class="btn btn-accent" to="/courses">Browse courses</router-link></div>
+      </section>
 
-    <main id="main">
-      <!-- Hero: one composition — brand, headline, support, CTAs, full-bleed photo -->
-      <section class="course-hero" aria-labelledby="course-title">
-        <div class="course-hero-media" aria-hidden="true">
-          <picture>
-            <source :srcset="profileWebp" type="image/webp" />
-            <img :src="profileJpg" alt="" width="520" height="520" decoding="async" class="course-hero-photo" />
-          </picture>
-          <div class="course-hero-shade" />
-        </div>
-        <div class="container course-hero-copy">
-          <p class="course-brand">Vireak Roeun</p>
-          <h1 id="course-title" class="course-hero-title">{{ course.title }}</h1>
-          <p class="course-hero-lede">{{ course.description }}</p>
-          <div class="course-hero-actions">
-            <button class="btn btn-accent btn-lg" type="button" @click="goEnroll()">
-              Request a seat
-              <i class="bi bi-arrow-right" aria-hidden="true"></i>
-            </button>
-            <a class="btn btn-ghost btn-lg" :href="contact.telegramUrl" target="_blank" rel="noopener noreferrer">
-              <i class="bi bi-telegram" aria-hidden="true"></i>
-              Telegram
-            </a>
+      <template v-else>
+        <!-- Hero bento -->
+        <section class="course-bento course-bento-detail" aria-labelledby="course-title">
+          <div class="tile tile-intro course-intro">
+            <p class="eyebrow eyebrow-accent"><i :class="course.icon" aria-hidden="true"></i> {{ course.shortTitle || 'Course' }} course</p>
+            <h1 id="course-title" class="course-h1">{{ course.title }}</h1>
+            <p class="hero-tagline">{{ course.summary }}</p>
+            <div class="hero-actions">
+              <button class="btn btn-accent btn-lg" type="button" @click="goEnroll()">
+                Request a seat
+                <i class="bi bi-arrow-right" aria-hidden="true"></i>
+              </button>
+              <a class="btn btn-ghost btn-lg" :href="contact.telegramUrl" target="_blank" rel="noopener noreferrer">
+                <i class="bi bi-telegram" aria-hidden="true"></i> Ask on Telegram
+              </a>
+            </div>
           </div>
-        </div>
-      </section>
+          <div class="tile tile-photo course-photo">
+            <picture>
+              <source :srcset="profileWebp" type="image/webp" />
+              <img :src="profileJpg" alt="Vireak Roeun, course instructor" width="520" height="520" decoding="async" />
+            </picture>
+          </div>
+          <div class="tile course-fact">
+            <p class="tile-label"><i class="bi bi-clock" aria-hidden="true"></i> Length</p>
+            <p class="course-fact-value">{{ course.hours ? `${course.hours} hours` : 'To be announced' }}</p>
+          </div>
+          <div class="tile course-fact">
+            <p class="tile-label"><i class="bi bi-translate" aria-hidden="true"></i> Languages</p>
+            <p class="course-fact-value">{{ course.languages?.join(' & ') }}</p>
+          </div>
+          <div class="tile course-fact">
+            <p class="tile-label"><i class="bi bi-bar-chart" aria-hidden="true"></i> Level</p>
+            <p class="course-fact-value">{{ course.level || 'To be announced' }}</p>
+          </div>
+          <div class="tile course-fact course-fact-accent">
+            <p class="tile-label"><i class="bi bi-tag" aria-hidden="true"></i> Price</p>
+            <p class="course-fact-value">{{ priceText }}</p>
+          </div>
+        </section>
 
-      <!-- Outline -->
-      <section id="outline" class="section course-section" aria-labelledby="outline-title">
-        <div class="container course-narrow">
-          <SectionHead
-            index="01"
-            eyebrow="Curriculum"
-            title="60 hours from foundations to a shipped capstone"
-            title-id="outline-title"
-          />
-          <ol class="outline-list">
-            <li v-for="(m, i) in displayModules" :key="m.id || i" class="outline-item">
-              <span class="outline-index">{{ String(i + 1).padStart(2, '0') }}</span>
-              <div class="outline-body">
-                <h3>{{ m.title }}</h3>
-                <p>{{ m.description }}</p>
-              </div>
-              <span class="outline-hours">{{ m.hours }}h</span>
-            </li>
-          </ol>
-        </div>
-      </section>
+        <!-- Outline + classes -->
+        <div class="course-split course-block">
+          <section id="outline" class="tile course-panel" aria-labelledby="outline-title">
+            <p class="tile-label">Curriculum</p>
+            <h2 id="outline-title" class="panel-title">{{ course.outlinePending ? 'What it covers' : 'Course outline' }}</h2>
+            <ol v-if="!course.outlinePending" class="outline-list">
+              <li v-for="(m, i) in course.modules" :key="m.id || i" class="outline-item">
+                <span class="outline-index">{{ String(i + 1).padStart(2, '0') }}</span>
+                <div class="outline-body">
+                  <h3>{{ m.title }}</h3>
+                  <p v-if="m.description">{{ m.description }}</p>
+                </div>
+                <span v-if="m.hours" class="outline-hours">{{ m.hours }}h</span>
+              </li>
+            </ol>
+            <template v-else>
+              <ul class="check-list" role="list">
+                <li v-for="o in course.outcomes" :key="o"><i class="bi bi-check2" aria-hidden="true"></i>{{ o }}</li>
+              </ul>
+              <ul class="course-chips" role="list" aria-label="Stack">
+                <li v-for="t in course.stack" :key="t" class="course-chip">{{ t }}</li>
+              </ul>
+              <p class="outline-pending"><i class="bi bi-hourglass-split" aria-hidden="true"></i> Full outline coming soon — request a seat and I’ll send it as soon as it’s ready.</p>
+            </template>
+          </section>
 
-      <!-- Classes -->
-      <section id="classes" class="section course-section course-section-tint" aria-labelledby="classes-title">
-        <div class="container course-narrow">
-          <SectionHead
-            index="02"
-            eyebrow="Upcoming classes"
-            title="Pick an intake, then request your seat"
-            title-id="classes-title"
-          />
-          <ul v-if="openCohorts.length" class="seat-list">
-            <li v-for="c in openCohorts" :key="c.id" class="seat-row">
-              <div>
-                <h3>{{ c.title }}</h3>
-                <p>
-                  {{ formatCohortDates(c) }}
-                  <template v-if="c.schedule_text"> · {{ c.schedule_text }}</template>
+          <section id="classes" class="tile course-panel" aria-labelledby="classes-title">
+            <p class="tile-label">Upcoming classes</p>
+            <h2 id="classes-title" class="panel-title">Pick a class</h2>
+            <ul v-if="cohorts.length" class="cohort-list" role="list">
+              <li v-for="c in cohorts" :key="c.id" class="cohort-card" :class="{ 'is-closed': c.status !== 'open' }">
+                <div class="cohort-head">
+                  <h3>{{ c.title }}</h3>
+                  <span class="status-pill" :class="c.status === 'open' ? 'is-live' : 'is-muted'">
+                    <span class="status-dot" aria-hidden="true"></span>{{ formatLabel(c.status) }}
+                  </span>
+                </div>
+                <p class="cohort-meta">
+                  {{ formatCohortDates(c) }}<template v-if="c.schedule_text"> · {{ c.schedule_text }}</template>
+                  <template v-if="c.format"> · {{ formatLabel(c.format) }}</template>
+                  <template v-if="cohortPrice(c)"> · {{ cohortPrice(c) }}</template>
                 </p>
-                <p class="seat-meta">
-                  {{ formatLabel(c.format) }} · {{ c.seats_left }} of {{ c.seats }} seats left
-                </p>
-              </div>
-              <button class="btn btn-accent" type="button" @click="goEnroll(c)">Request a seat</button>
-            </li>
-          </ul>
-          <p v-else class="seat-empty">
-            New intakes will appear here when seats open. You can still send a request below — I’ll follow up with dates.
-          </p>
-        </div>
-      </section>
-
-      <!-- Enroll -->
-      <section id="enroll" ref="enrollEl" class="section course-section" aria-labelledby="enroll-title">
-        <div class="container course-enroll-layout">
-          <div class="course-enroll-intro">
-            <SectionHead
-              index="03"
-              eyebrow="Enroll"
-              title="Request a seat"
-              title-id="enroll-title"
-            />
-            <p class="course-enroll-note">
-              Tell me a little about yourself and what you’d like to learn.
-              <template v-if="apiEnabled"> I’ll get your request straight away and reply by email.</template>
-              <template v-else> Submitting opens your email app with everything filled in.</template>
-            </p>
-            <p v-if="selectedCohort" class="cohort-chip">
-              Seat request for <strong>{{ selectedCohort.title }}</strong>
-              <button type="button" class="link-button" @click="selectedCohort = null">Clear</button>
-            </p>
-            <ul class="enroll-facts" role="list">
-              <li v-for="item in course.highlights" :key="item.label">
-                <i :class="item.icon" aria-hidden="true"></i>
-                {{ item.label }}
+                <CohortProgress :course="course" :cohort="c" />
+                <button v-if="c.status === 'open'" class="btn btn-accent btn-sm" type="button" @click="goEnroll(c)">Request a seat</button>
               </li>
             </ul>
+            <div v-else class="cohort-empty">
+              <p><strong>Next class is forming.</strong></p>
+              <p class="tile-note">No dates are published yet. Request a seat and I’ll contact you as soon as {{ MIN_STUDENTS }} students have joined.</p>
+            </div>
+          </section>
+        </div>
+
+        <div class="course-block"><CoursePolicyTile /></div>
+
+        <!-- Enroll -->
+        <section id="enroll" ref="enrollEl" class="tile course-enroll course-block" aria-labelledby="enroll-title">
+          <div class="course-enroll-intro">
+            <p class="tile-label">Enroll</p>
+            <h2 id="enroll-title" class="panel-title">Request your seat</h2>
+            <p class="tile-note">
+              Tell me a little about yourself.
+              <template v-if="apiEnabled"> Your request comes straight to me and I’ll reply by email or Telegram.</template>
+              <template v-else> Submitting opens your email app with everything filled in.</template>
+            </p>
+            <ul class="enroll-facts" role="list">
+              <li><i class="bi bi-people" aria-hidden="true"></i> Classes open at {{ MIN_STUDENTS }} students</li>
+              <li><i class="bi bi-chat-dots" aria-hidden="true"></i> I’ll contact you to confirm before the class starts</li>
+              <li><i class="bi bi-translate" aria-hidden="true"></i> English or Khmer — your choice</li>
+            </ul>
+            <p class="tile-note enroll-alt">
+              Prefer chat? <a :href="contact.telegramUrl" target="_blank" rel="noopener noreferrer">Telegram {{ contact.telegramHandle }}</a>
+              · <a :href="`mailto:${contact.email}`">{{ contact.email }}</a>
+            </p>
           </div>
 
           <div class="course-enroll-panel" role="region" aria-labelledby="enroll-title">
@@ -189,6 +198,30 @@
                   {{ errorCount === 1 ? 'One thing needs a quick look' : `${errorCount} things need a quick look` }}
                   before sending.
                 </span>
+              </div>
+
+              <div class="form-row">
+                <div class="field">
+                  <label class="field-label" for="cf-course">Course</label>
+                  <div class="select-wrap">
+                    <select id="cf-course" v-model="formCourseSlug" class="input" name="course">
+                      <option v-for="c in allCourses" :key="c.slug" :value="c.slug">{{ c.title }}</option>
+                    </select>
+                    <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                  </div>
+                </div>
+                <div class="field">
+                  <label class="field-label" for="cf-cohort">Class</label>
+                  <div class="select-wrap">
+                    <select id="cf-cohort" v-model="formCohortId" class="input" name="cohort" :disabled="!formCohorts.length">
+                      <option :value="null">{{ formCohorts.length ? 'Next available class' : 'Next class (forming)' }}</option>
+                      <option v-for="c in formCohorts" :key="c.id" :value="c.id" :disabled="c.status !== 'open'">
+                        {{ c.title }} · {{ formatCohortDates(c) }}{{ c.status !== 'open' ? ` (${c.status})` : '' }}
+                      </option>
+                    </select>
+                    <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                  </div>
+                </div>
               </div>
 
               <div class="form-row">
@@ -305,6 +338,7 @@
                 <p v-if="showError('message')" class="field-error">{{ allErrors.message }}</p>
               </div>
 
+              <p class="form-policy"><i class="bi bi-people" aria-hidden="true"></i> Classes open at {{ MIN_STUDENTS }} students. I’ll contact you to confirm before the class starts.</p>
               <div class="form-submit">
                 <button class="btn btn-accent btn-lg" type="submit" :disabled="sending">
                   <span v-if="sending" class="btn-spinner" aria-hidden="true"></span>
@@ -312,212 +346,149 @@
                   {{ sending ? 'Sending…' : 'Request enrollment' }}
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
-      </section>
+            </form>          </div>
+        </section>
 
-      <!-- Instructor -->
-      <section id="instructor" class="section course-section course-section-tint" aria-labelledby="instructor-title">
-        <div class="container course-instructor-layout">
-          <picture class="course-instructor-photo">
-            <source :srcset="profileWebp" type="image/webp" />
-            <img :src="profileJpg" alt="Vireak Roeun" width="520" height="520" decoding="async" />
-          </picture>
-          <div>
+        <!-- Instructor + FAQ -->
+        <div class="course-split course-block">
+          <section class="tile course-panel course-instructor" aria-labelledby="instructor-title">
+            <picture class="course-instructor-photo">
+              <source :srcset="profileWebp" type="image/webp" />
+              <img :src="profileJpg" alt="Vireak Roeun" width="520" height="520" decoding="async" loading="lazy" />
+            </picture>
             <p class="tile-label">Your instructor</p>
-            <h2 id="instructor-title" class="course-instructor-name">Vireak Roeun</h2>
-            <p class="course-instructor-role">Senior DevOps Officer &amp; Full-Stack Developer</p>
-            <ul class="instructor-facts" role="list">
-              <li v-for="item in instructorFacts" :key="item.text">
-                <span class="highlight-icon"><i :class="item.icon" aria-hidden="true"></i></span>
-                {{ item.text }}
-              </li>
+            <h2 id="instructor-title" class="panel-title">Vireak Roeun</h2>
+            <p class="tile-note">Senior DevOps Officer &amp; Full-Stack Developer</p>
+            <ul class="check-list" role="list">
+              <li v-for="item in instructorFacts" :key="item.text"><i :class="item.icon" aria-hidden="true"></i>{{ item.text }}</li>
             </ul>
-            <div class="course-instructor-links">
-              <a
-                v-for="item in directContacts"
-                :key="item.label"
-                class="btn btn-ghost"
-                :href="item.href"
-                v-bind="item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {}"
-              >
-                <i :class="item.icon" aria-hidden="true"></i>
-                {{ item.label }}
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
+          </section>
 
-      <!-- FAQ -->
-      <section id="faq" class="section course-section" aria-labelledby="faq-title">
-        <div class="container course-narrow">
-          <SectionHead index="04" eyebrow="FAQ" title="Quick answers" title-id="faq-title" />
-          <div class="faq-list faq-list-single">
-            <details v-for="item in faqs" :key="item.q" class="faq-item">
-              <summary>
-                {{ item.q }}
-                <i class="bi bi-plus-lg" aria-hidden="true"></i>
-              </summary>
-              <p>{{ item.a }}</p>
-            </details>
-          </div>
+          <section id="faq" class="tile course-panel" aria-labelledby="faq-title">
+            <p class="tile-label">FAQ</p>
+            <h2 id="faq-title" class="panel-title">Quick answers</h2>
+            <div class="faq-list faq-list-single">
+              <details v-for="item in faqs" :key="item.q" class="faq-item">
+                <summary>
+                  {{ item.q }}
+                  <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                </summary>
+                <p>{{ item.a }}</p>
+              </details>
+            </div>
+          </section>
         </div>
-      </section>
+      </template>
     </main>
 
-    <div class="enroll-bar" :class="{ 'is-hidden': enrollInView }" :inert="enrollInView">
+    <div v-if="!notFound" class="enroll-bar" :class="{ 'is-hidden': enrollInView }" :inert="enrollInView">
       <button class="btn btn-accent btn-block" type="button" @click="goEnroll()">
         <i class="bi bi-mortarboard-fill" aria-hidden="true"></i>
         Request a seat
       </button>
     </div>
 
-    <footer class="site-footer">
-      <div class="container footer-inner">
-        <router-link class="brand" to="/">
-          <BrandMark :size="28" />
-          <span class="brand-name">Vireak Roeun</span>
-        </router-link>
-        <p class="footer-copy">© {{ currentYear }} Vireak Roeun · Phnom Penh, Cambodia</p>
-        <router-link class="footer-top" to="/">
-          <i class="bi bi-arrow-left" aria-hidden="true"></i>
-          Back to home
-        </router-link>
-      </div>
-    </footer>
+    <CourseFooter />
   </div>
 </template>
 
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
-import BrandMark from '@/components/BrandMark.vue'
-import SectionHead from '@/components/SectionHead.vue'
+import { useRoute } from 'vue-router'
+import CourseHeader from '@/components/CourseHeader.vue'
+import CourseFooter from '@/components/CourseFooter.vue'
+import CoursePolicyTile from '@/components/CoursePolicyTile.vue'
+import CohortProgress from '@/components/CohortProgress.vue'
 import { apiConfigured as apiEnabled, engineAPI, ApiError } from '@/helpers/api'
+import {
+  MIN_STUDENTS, contact, cohortPrice, coursePrice, formatCohortDates, formatLabel,
+  loadCourses, mergeCourse, staticBySlug, staticCourses, visibleCohorts,
+} from '@/data/courses.js'
 import profileWebp from '@/assets/img/profile-520.webp'
 import profileJpg from '@/assets/img/profile-520.jpg'
 
-const COURSE_SLUG = 'full-stack-teaching-course'
-const remoteCourse = ref(null)
-const selectedCohort = ref(null)
+const route = useRoute()
+const slug = computed(() => String(route.params.slug || ''))
 
-const staticModules = [
-  { id: 's1', title: 'Web foundations', hours: 8, description: 'HTML, CSS, JavaScript refreshers and tooling.' },
-  { id: 's2', title: 'PHP & Laravel core', hours: 16, description: 'Routing, Eloquent, validation, auth, and APIs.' },
-  { id: 's3', title: 'Vue frontend', hours: 16, description: 'Components, routing, forms, and talking to Laravel APIs.' },
-  { id: 's4', title: 'Class Manager capstone', hours: 20, description: 'An end-to-end app that ties Laravel and Vue together.' },
-]
+const course = ref(mergeCourse(null, staticBySlug[slug.value] || staticCourses[0]))
+const notFound = ref(false)
+const allCourses = ref(staticCourses.map((c) => mergeCourse(null, c)))
 
-const displayModules = computed(() =>
-  remoteCourse.value?.modules?.length ? remoteCourse.value.modules : staticModules,
+const cohorts = computed(() => visibleCohorts(course.value))
+const priceText = computed(() => {
+  const p = coursePrice(course.value)
+  return p ? `${p.from ? 'From ' : ''}${p.label}` : 'Price on request'
+})
+
+// Enrollment target (course preselected from the page, switchable in the form)
+const formCourseSlug = ref(slug.value)
+const formCohortId = ref(null)
+const formCourse = computed(
+  () => (formCourseSlug.value === course.value.slug ? course.value : allCourses.value.find((c) => c.slug === formCourseSlug.value)) || course.value,
 )
+const formCohorts = computed(() => visibleCohorts(formCourse.value))
+const formCohort = computed(() => formCohorts.value.find((c) => c.id === formCohortId.value) || null)
+watch(formCourseSlug, () => {
+  if (!formCohorts.value.some((c) => c.id === formCohortId.value)) formCohortId.value = null
+})
 
-const openCohorts = computed(() =>
-  (remoteCourse.value?.cohorts || []).filter((c) => c.status === 'open' || c.status === 'full'),
-)
-
-const formatCohortDates = (c) => {
-  const fmt = (d) =>
-    d ? new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : null
-  const start = fmt(c.start_date)
-  const end = fmt(c.end_date)
-  if (start && end) return `${start} – ${end}`
-  return start || end || 'Dates TBC'
+const loadCourse = async () => {
+  const fallback = staticBySlug[slug.value]
+  notFound.value = false
+  course.value = mergeCourse(null, fallback || null)
+  formCourseSlug.value = slug.value
+  formCohortId.value = null
+  if (!apiEnabled) {
+    notFound.value = !fallback
+    return
+  }
+  try {
+    const { data } = await engineAPI.get(`/courses/${encodeURIComponent(slug.value)}`)
+    course.value = mergeCourse(data?.data || data, fallback || null)
+  } catch (e) {
+    // 404 for a course we don't know statically → not found; anything else keeps the static fallback.
+    if (!fallback) notFound.value = true
+    void e
+  }
 }
 
-const formatLabel = (format) => String(format || '').replaceAll('_', ' ')
-
 const goEnroll = async (cohort = null) => {
-  if (cohort) selectedCohort.value = cohort
+  if (cohort) {
+    formCourseSlug.value = course.value.slug
+    formCohortId.value = cohort.id
+  }
   await nextTick()
   document.getElementById('enroll')?.scrollIntoView({
     behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
     block: 'start',
   })
-  window.setTimeout(() => document.getElementById('cf-name')?.focus(), 400)
-}
-
-const loadRemoteCourse = async () => {
-  if (!apiEnabled) return
-  try {
-    const { data } = await engineAPI.get(`/courses/${COURSE_SLUG}`)
-    remoteCourse.value = data?.data || data
-    if (remoteCourse.value?.title) {
-      course.title = remoteCourse.value.title
-      if (remoteCourse.value.summary) course.description = remoteCourse.value.summary
-    }
-  } catch {
-    /* keep static fallback */
-  }
-}
-
-const contact = {
-  email: 'roeunvireak0@gmail.com',
-  telegramUrl: 'https://t.me/R_Vireak',
-  telegramHandle: '@R_Vireak',
-}
-
-const course = {
-  title: 'Full-stack teaching course',
-  description:
-    '60-hour Laravel + Vue curriculum with a Class Manager capstone, taught bilingually in English and Khmer.',
-  highlights: [
-    { label: '60 hours', icon: 'bi bi-clock' },
-    { label: 'Laravel + Vue', icon: 'bi bi-stack' },
-    { label: 'English & Khmer', icon: 'bi bi-translate' },
-    { label: 'Class Manager capstone', icon: 'bi bi-kanban' },
-  ],
+  window.setTimeout(() => document.getElementById('cf-name')?.focus({ preventScroll: true }), 400)
 }
 
 const instructorFacts = [
-  {
-    icon: 'bi bi-easel',
-    text: 'Programming Instructor at ANT Training Center (2024 – 2025), teaching PHP, Laravel, MySQL, and OOP',
-  },
-  {
-    icon: 'bi bi-hdd-stack',
-    text: 'Builds Laravel, Vue, and Quasar systems in production at the Institute of Banking and Finance',
-  },
+  { icon: 'bi bi-easel', text: 'Programming Instructor at ANT Training Center (2024 – 2025), teaching PHP, Laravel, MySQL, and OOP' },
+  { icon: 'bi bi-hdd-stack', text: 'Builds Laravel, Vue, and Quasar systems in production at the Institute of Banking and Finance' },
+  { icon: 'bi bi-hdd-network', text: 'Delivered VPS, Coolify, domain/SSL, and CI/CD setups for clients' },
   { icon: 'bi bi-translate', text: 'English (professional) · Khmer (native)' },
 ]
 
-const directContacts = [
-  {
-    label: 'Email',
-    value: contact.email,
-    href: `mailto:${contact.email}?subject=${encodeURIComponent('Course enrollment')}`,
-    icon: 'bi bi-envelope-fill',
-    external: false,
-  },
-  {
-    label: 'Telegram',
-    value: contact.telegramHandle,
-    href: contact.telegramUrl,
-    icon: 'bi bi-telegram',
-    external: true,
-  },
-]
-
-const faqs = [
-  { q: 'How long is the course?', a: 'The curriculum is 60 hours in total.' },
-  {
-    q: 'What will I learn?',
-    a: 'Full-stack web development with Laravel on the backend and Vue on the frontend.',
-  },
-  {
-    q: 'What do I build?',
-    a: 'A Class Manager capstone that brings the Laravel and Vue parts of the curriculum together.',
-  },
-  {
-    q: 'Which language is it taught in?',
-    a: 'Bilingual English and Khmer. Tell me your preference in the enrollment form.',
-  },
-  {
-    q: 'Where can I find fees, dates, and schedules?',
-    a: 'Request a seat or message me on Telegram — I’ll share the current intake details.',
-  },
-]
+const faqs = computed(() => {
+  const c = course.value
+  const list = []
+  if (c.hours) list.push({ q: 'How long is the course?', a: `The curriculum is ${c.hours} hours in total.` })
+  else list.push({ q: 'How long is the course?', a: 'Hours and schedule will be announced with the first class. Request a seat to hear first.' })
+  if (c.slug === 'full-stack-teaching-course') {
+    list.push({ q: 'What do I build?', a: 'A Class Manager capstone that brings the Laravel and Vue parts of the curriculum together.' })
+  } else {
+    list.push({ q: 'What does it cover?', a: `${c.stack.join(', ')}. The full outline is coming soon.` })
+  }
+  list.push(
+    { q: 'When does a class start?', a: `A class opens once at least ${MIN_STUDENTS} students have enrolled. I’ll contact you to confirm before the class starts.` },
+    { q: 'Which language is it taught in?', a: 'English and Khmer. Tell me your preference in the enrollment form.' },
+    { q: 'How much does it cost?', a: priceText.value === 'Price on request' ? 'Price on request — send a seat request or message me on Telegram and I’ll share the current fee.' : `Classes currently start at ${priceText.value}. Details are confirmed before the class starts.` },
+  )
+  return list
+})
 
 const languageOptions = [
   { value: 'English', label: 'English' },
@@ -636,8 +607,9 @@ const enquiryText = computed(() => {
   const lines = [
     'Hi Vireak,',
     '',
-    `I'd like to enroll in your ${course.title} (60-hour Laravel + Vue).`,
+    `I'd like to enroll in your ${formCourse.value?.title || 'course'}.`,
     '',
+    `Class: ${formCohort.value ? `${formCohort.value.title} (${formatCohortDates(formCohort.value)})` : 'Next available'}`,
     `Name: ${form.name.trim()}`,
     `Email: ${form.email.trim()}`,
     `Phone / Telegram: ${form.contact.trim() || 'Not provided'}`,
@@ -654,7 +626,7 @@ const enquiryText = computed(() => {
 })
 
 const mailtoHref = computed(() => {
-  const subject = `Course enrollment request – ${form.name.trim() || 'Full-stack teaching course'}`
+  const subject = `Course enrollment request – ${form.name.trim() || formCourse.value?.title || 'course'}`
   return `mailto:${contact.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(enquiryText.value)}`
 })
 
@@ -697,10 +669,10 @@ const submitToApi = async () => {
     language: LANGUAGE_CODES[form.language] ?? form.language,
     format: FORMAT_CODES[form.format] ?? form.format,
     level: form.level,
-    message: form.message.trim(),
+    message: formCourse.value?.id ? form.message.trim() : `[${formCourse.value?.title || 'Course'}] ${form.message.trim()}`,
     website: honeypot.value,
-    course_id: remoteCourse.value?.id || null,
-    cohort_id: selectedCohort.value?.id || null,
+    course_id: formCourse.value?.id || null,
+    cohort_id: formCohortId.value || null,
   }
 
   try {
@@ -786,37 +758,26 @@ const editEnquiry = async () => {
   await nextTick()
   document.getElementById('cf-name')?.focus()
 }
-
-const currentYear = new Date().getFullYear()
-const isScrolled = ref(false)
-const handleScroll = () => {
-  isScrolled.value = window.scrollY > 8
-}
-
 const enrollEl = ref(null)
 const enrollInView = ref(false)
 let enrollObserver
 
-onMounted(() => {
-  window.addEventListener('scroll', handleScroll, { passive: true })
-  handleScroll()
-  loadRemoteCourse()
-  if (window.location.hash === '#enroll') {
-    window.setTimeout(() => goEnroll(), 100)
-  }
+watch(slug, async () => {
+  await loadCourse()
+})
+
+onMounted(async () => {
+  allCourses.value = staticCourses.map((c) => mergeCourse(null, c))
+  if (window.location.hash === '#enroll') window.setTimeout(() => goEnroll(), 150)
   if ('IntersectionObserver' in window && enrollEl.value) {
-    enrollObserver = new IntersectionObserver(
-      ([entry]) => {
-        enrollInView.value = entry.isIntersecting
-      },
-      { threshold: 0.1 },
-    )
+    enrollObserver = new IntersectionObserver(([entry]) => { enrollInView.value = entry.isIntersecting }, { threshold: 0.1 })
     enrollObserver.observe(enrollEl.value)
   }
+  await loadCourse()
+  loadCourses(engineAPI, apiEnabled).then((list) => { allCourses.value = list })
 })
 
 onBeforeUnmount(() => {
-  window.removeEventListener('scroll', handleScroll)
   enrollObserver?.disconnect()
 })
 </script>
