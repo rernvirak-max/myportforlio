@@ -488,6 +488,34 @@ const projects = [
     description:
       '60-hour Laravel + Vue curriculum with a Class Manager capstone, delivered bilingual in English and Khmer.',
     tech: ['Laravel', 'Vue.js']
+  },
+  {
+    title: 'Restaurant Display Website',
+    icon: 'bi bi-shop',
+    description:
+      'Built a production-ready website for restaurant presentation and business visibility with backend-driven content management.',
+    tech: ['Laravel', 'Vue.js', 'MySQL']
+  },
+  {
+    title: 'Farm Management System',
+    icon: 'bi bi-flower1',
+    description:
+      'Developed system modules for farm operations, data tracking, and reporting workflows with reliable backend processing.',
+    tech: ['Laravel', 'MySQL', 'JavaScript']
+  },
+  {
+    title: 'Team Management System',
+    icon: 'bi bi-people',
+    description:
+      'Implemented team workflow features, role-based operations, and structured data management for internal coordination.',
+    tech: ['Laravel', 'REST API', 'MySQL']
+  },
+  {
+    title: 'AWS Hosting & CI/CD Services',
+    icon: 'bi bi-cloud-check',
+    description:
+      'Provided deployment and hosting services for local company projects using AWS infrastructure, Dockerized services, and automated CI/CD pipelines.',
+    tech: ['AWS', 'Docker', 'GitHub Actions', 'Ubuntu Server', 'VPS']
   }
 ];
 
