@@ -66,10 +66,10 @@
       <section id="hero" class="hero" aria-labelledby="hero-title">
         <div class="container bento">
           <div class="tile tile-intro reveal">
-            <p class="eyebrow eyebrow-accent">Senior DevOps Officer & Full-Stack Developer</p>
+            <p class="eyebrow eyebrow-accent">Senior DevOps Officer & Full-Stack Developer · Team Lead Digital &amp; Information (IBF)</p>
             <h1 id="hero-title">Vireak Roeun</h1>
             <p class="hero-tagline">
-              Full-Stack Developer & DevOps Engineer building scalable systems with Laravel, Vue, and AWS.
+              Full-Stack Developer & DevOps Engineer shipping Laravel, Vue, and Quasar systems with Docker, Coolify, and AWS.
             </p>
             <div class="hero-actions">
               <a class="btn btn-accent btn-lg" href="#projects" @click="handleNavClick('projects')">
@@ -154,13 +154,14 @@
             <SectionHead
               index="01"
               eyebrow="About"
-              title="Production-minded engineering across app and infrastructure"
+              title="Production-minded engineering across app, platform, and infrastructure"
               title-id="about-title"
             />
             <p class="lead reveal">
-              I am a Full-Stack Developer and DevOps Engineer based in Cambodia, currently working at the Institute
-              of Banking and Finance. I build and maintain business-critical systems using Laravel, Vue.js, Docker,
-              and AWS, with a strong focus on reliability, deployment automation, and operational clarity.
+              I am a Full-Stack Developer and DevOps Engineer based in Cambodia, currently Senior DevOps Officer and
+              Team Lead Digital &amp; Information at the Institute of Banking and Finance. I build and operate
+              business-critical systems with Laravel, Vue.js, Quasar, Docker, Coolify, and AWS — focused on reliable
+              releases, clear operations, and careful shipping.
             </p>
           </div>
           <ul class="highlight-list tile reveal" role="list" :style="revealDelay(1)">
@@ -205,13 +206,13 @@
       <!-- Skills -->
       <section id="skills" class="section" aria-labelledby="skills-title">
         <div class="container">
-          <SectionHead index="03" eyebrow="Skills" title="Full-stack and DevOps capabilities" title-id="skills-title" />
+          <SectionHead index="03" eyebrow="Skills" title="Full-stack, platform, and DevOps capabilities" title-id="skills-title" />
           <div class="skills-grid">
             <article
               v-for="(group, index) in skillGroups"
               :key="group.title"
               class="tile skill-tile reveal"
-              :class="{ 'skill-tile-accent': group.title === 'DevOps' }"
+              :class="{ 'skill-tile-accent': group.title.startsWith('DevOps') }"
               :style="revealDelay(index)"
             >
               <div class="skill-head">
@@ -411,62 +412,82 @@ const heroStack = [
   { label: 'Vue.js', icon: 'bi bi-window-stack' },
   { label: 'Quasar', icon: 'bi bi-grid-1x2' },
   { label: 'AWS', icon: 'bi bi-cloud-check' },
-  { label: 'Docker', icon: 'bi bi-box-seam' }
+  { label: 'Docker', icon: 'bi bi-box-seam' },
+  { label: 'Coolify', icon: 'bi bi-lightning-charge' }
 ];
 
 const highlights = [
-  { icon: 'bi bi-diagram-3', text: 'Backend API design and integration for internal platforms' },
-  { icon: 'bi bi-git', text: 'CI/CD implementation with GitHub Actions for safer releases' },
-  { icon: 'bi bi-box-seam', text: 'Containerized workloads and server management on Ubuntu/VPS' },
-  { icon: 'bi bi-database', text: 'Database architecture and data validation with MySQL' }
+  { icon: 'bi bi-diagram-3', text: 'Backend API design and multi-service platform integration' },
+  { icon: 'bi bi-git', text: 'CI/CD with GitHub Actions and staging-to-production checks' },
+  { icon: 'bi bi-box-seam', text: 'Docker, Coolify, and server management on Ubuntu/VPS' },
+  { icon: 'bi bi-people', text: 'Mentoring, code review, and careful production shipping' },
+  { icon: 'bi bi-translate', text: 'English (professional) · Khmer (native)' }
 ];
 
 const skillGroups = [
-  { title: 'Backend', icon: 'bi bi-hdd-stack', items: ['PHP', 'Laravel', 'RESTful APIs', 'Node.js'] },
-  { title: 'Frontend', icon: 'bi bi-window-stack', items: ['Vue.js', 'Quasar', 'HTML', 'CSS', 'JavaScript'] },
-  { title: 'Database', icon: 'bi bi-database', items: ['MySQL', 'Database Architecture', 'Data Validation'] },
   {
-    title: 'DevOps',
+    title: 'Backend',
+    icon: 'bi bi-hdd-stack',
+    items: ['PHP', 'Laravel', 'RESTful API design', 'Node.js', 'Auth & multi-service platforms']
+  },
+  {
+    title: 'Frontend',
+    icon: 'bi bi-window-stack',
+    items: ['Vue.js', 'Quasar', 'HTML', 'CSS', 'JavaScript', 'PWA-oriented UI', 'Master-dashboard / CRM UI']
+  },
+  {
+    title: 'Database',
+    icon: 'bi bi-database',
+    items: ['MySQL', 'Relational modeling', 'Data validation & integrity']
+  },
+  {
+    title: 'DevOps & infrastructure',
     icon: 'bi bi-cloud-check',
-    items: ['Docker', 'CI/CD Pipelines', 'GitHub Actions', 'AWS', 'VPS Deployment', 'Ubuntu Server']
+    items: [
+      'Docker',
+      'CI/CD & GitHub Actions',
+      'AWS & VPS deployment',
+      'Ubuntu Server / Linux',
+      'Coolify',
+      'Nixpacks',
+      'Cloudflare Tunnel',
+      'Domain / DNS / SSL',
+      'Backups & rollback-ready releases',
+      'Staging → production checks',
+      'GitHub (branches/PRs)',
+      'Self-hosted AI (Ollama, Open WebUI)'
+    ]
   }
 ];
 
 const projects = [
   {
-    title: 'IBF Dashboard Platform',
+    title: 'IBF Dashboard & multi-service platform',
     icon: 'bi bi-speedometer2',
     description:
-      'Designed and maintained backend API features for the Institute of Banking and Finance dashboard, then integrated those APIs into a Vue + Quasar frontend.',
-    tech: ['Laravel', 'REST API', 'Vue.js', 'Quasar', 'MySQL']
+      'Auth, product, events, and CRM engines with a master-dashboard Quasar UI, backed by Laravel APIs for the Institute of Banking and Finance.',
+    tech: ['Laravel', 'Vue.js', 'Quasar', 'MySQL', 'REST API']
   },
   {
-    title: 'Restaurant Display Website',
-    icon: 'bi bi-shop',
+    title: 'MaxTune',
+    icon: 'bi bi-music-note-beamed',
     description:
-      'Built a production-ready website for restaurant presentation and business visibility with backend-driven content management.',
-    tech: ['Laravel', 'Vue.js', 'MySQL']
+      'Personal music platform with a Vue/Quasar SPA and Laravel engine, hosted on Coolify with Docker.',
+    tech: ['Laravel', 'Vue.js', 'Quasar', 'Coolify', 'Docker']
   },
   {
-    title: 'Farm Management System',
-    icon: 'bi bi-flower1',
+    title: 'Client DevOps setup & training',
+    icon: 'bi bi-hdd-network',
     description:
-      'Developed system modules for farm operations, data tracking, and reporting workflows with reliable backend processing.',
-    tech: ['Laravel', 'MySQL', 'JavaScript']
+      'Delivered VPS, Coolify, domain/SSL, and CI/CD setup for clients, plus an 8-session weekend training package.',
+    tech: ['Coolify', 'Docker', 'GitHub Actions', 'Ubuntu', 'DNS/SSL']
   },
   {
-    title: 'Team Management System',
-    icon: 'bi bi-people',
+    title: 'Full-stack teaching course',
+    icon: 'bi bi-journal-code',
     description:
-      'Implemented team workflow features, role-based operations, and structured data management for internal coordination.',
-    tech: ['Laravel', 'REST API', 'MySQL']
-  },
-  {
-    title: 'AWS Hosting & CI/CD Services',
-    icon: 'bi bi-cloud-check',
-    description:
-      'Provided deployment and hosting services for local company projects using AWS infrastructure, Dockerized services, and automated CI/CD pipelines.',
-    tech: ['AWS', 'Docker', 'GitHub Actions', 'Ubuntu Server', 'VPS']
+      '60-hour Laravel + Vue curriculum with a Class Manager capstone, delivered bilingual in English and Khmer.',
+    tech: ['Laravel', 'Vue.js']
   }
 ];
 
