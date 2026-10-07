@@ -79,10 +79,10 @@ Overwrite `public/Vireak-Roeun-CV.pdf` (same file name keeps the Download CV lin
 Private page for managing course enrollment requests from the engine API. It is not linked from the
 public site, has `noindex, nofollow`, and is not in `sitemap.xml`.
 
-- Requires `VITE_API_URL` (engine base URL). Without it the page shows "API not configured".
+- Engine client: axios via [`src/helpers/api`](src/helpers/api) (same layout as greyon). Hosts from `VITE_APP_MODE` (`local` → `https://myportfolio-engine.test`, `production` → `https://myportfolio-engine.mxlab.site`). Override with `VITE_ENGINE_URL`.
 - The engine's `FRONTEND_URLS` must include this site's origin (CORS).
 - Create the admin on the engine: `php artisan admin:create you@example.com` (prompts for password).
-- `/admin/login` → Sanctum token → `/admin` (stats, search/filter, detail panel, status + note, delete, CSV export).
+- `/admin/login` → Sanctum token → `/admin/overview` (KPIs) and `/admin/enrollments` (stats, search/filter, detail panel, status + note, delete, CSV export). Sidebar on desktop; bottom tabs on mobile.
 
 **Token storage trade-off:** the bearer token is kept in `localStorage` so a static host works without
 cookies/same-site setup. Any XSS on this origin could read it, so the token expires after 14 days, is

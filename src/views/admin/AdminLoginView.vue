@@ -21,7 +21,10 @@ async function submit() {
   try {
     const data = await api('/admin/login', { method: 'POST', body: { email: email.value, password: password.value }, auth: false })
     setToken(data.token)
-    const next = typeof route.query.next === 'string' && route.query.next.startsWith('/admin') ? route.query.next : '/admin'
+    const next =
+      typeof route.query.next === 'string' && route.query.next.startsWith('/admin') && !route.query.next.startsWith('/admin/login')
+        ? route.query.next
+        : '/admin/overview'
     router.replace(next)
   } catch (e) {
     error.value = e.status === 422 && !Object.keys(e.errors).length ? e.message : e.status === 422 ? 'Enter a valid email and password.' : e.message
@@ -39,7 +42,7 @@ async function submit() {
       <p class="sub">Manage course enrollment requests.</p>
 
       <div v-if="!apiConfigured" class="adm-alert info">
-        API not configured. Set <code>VITE_API_URL</code> to the engine URL and rebuild the site to use the admin area.
+        API not configured. Check <code>src/helpers/api</code> / <code>VITE_APP_MODE</code>.
       </div>
       <div v-if="error" class="adm-alert error" role="alert">{{ error }}</div>
 

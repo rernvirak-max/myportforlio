@@ -26,20 +26,68 @@ const router = createRouter({
     },
     {
       path: '/admin',
-      name: 'admin',
-      component: () => import('../views/admin/AdminView.vue'),
-      meta: { ...routeMeta.admin, requiresAdmin: true },
+      component: () => import('../views/admin/AdminLayout.vue'),
+      meta: { requiresAdmin: true, noindex: true },
+      children: [
+        { path: '', redirect: { name: 'admin-overview' } },
+        {
+          path: 'overview',
+          name: 'admin-overview',
+          component: () => import('../views/admin/AdminOverviewView.vue'),
+          meta: { ...routeMeta.adminOverview, requiresAdmin: true },
+        },
+        {
+          path: 'enrollments',
+          name: 'admin-enrollments',
+          component: () => import('../views/admin/AdminEnrollmentsView.vue'),
+          meta: { ...routeMeta.adminEnrollments, requiresAdmin: true },
+        },
+        {
+          path: 'courses',
+          name: 'admin-courses',
+          component: () => import('../views/admin/AdminCoursesView.vue'),
+          meta: { ...routeMeta.adminCourses, requiresAdmin: true },
+        },
+        {
+          path: 'students',
+          name: 'admin-students',
+          component: () => import('../views/admin/AdminPlaceholderView.vue'),
+          props: {
+            title: 'Students',
+            blurb: 'Student roster and payment tracking will live here.',
+          },
+          meta: { ...routeMeta.adminStudents, requiresAdmin: true },
+        },
+        {
+          path: 'content',
+          name: 'admin-content',
+          component: () => import('../views/admin/AdminPlaceholderView.vue'),
+          props: {
+            title: 'Content',
+            blurb: 'Edit portfolio projects, skills, and testimonials without a code deploy.',
+          },
+          meta: { ...routeMeta.adminContent, requiresAdmin: true },
+        },
+        {
+          path: 'settings',
+          name: 'admin-settings',
+          component: () => import('../views/admin/AdminPlaceholderView.vue'),
+          props: {
+            title: 'Settings',
+            blurb: 'Password, sessions, and notification preferences come next.',
+          },
+          meta: { ...routeMeta.adminSettings, requiresAdmin: true },
+        },
+      ],
     },
   ],
   scrollBehavior(to, from, savedPosition) {
     if (savedPosition) {
       return savedPosition
     }
-    // Same-page hash links are handled natively by the browser (CSS scroll-padding).
     if (to.name === from.name) {
       return false
     }
-    // 'instant' so the global CSS `scroll-behavior: smooth` doesn't animate page changes.
     if (to.hash) {
       return { el: to.hash, top: 80, behavior: 'instant' }
     }
@@ -47,13 +95,15 @@ const router = createRouter({
   },
 })
 
-// Admin guard: no token -> login. The API still verifies the token (401 -> back to login).
 router.beforeEach((to) => {
   if (to.meta.requiresAdmin && !getToken()) {
-    return { name: 'admin-login', query: to.fullPath !== '/admin' ? { next: to.fullPath } : {} }
+    return {
+      name: 'admin-login',
+      query: to.fullPath !== '/admin' && to.fullPath !== '/admin/' ? { next: to.fullPath } : {},
+    }
   }
   if (to.name === 'admin-login' && getToken()) {
-    return { name: 'admin' }
+    return { name: 'admin-overview' }
   }
 })
 

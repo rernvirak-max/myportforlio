@@ -12,8 +12,14 @@ import { routeMeta } from './src/router/meta.js'
 // link previews show the right text.
 const staticRoutes = [
   { path: 'course', meta: routeMeta.course },
-  { path: 'admin', meta: routeMeta.admin },
+  { path: 'admin', meta: routeMeta.adminOverview },
   { path: 'admin/login', meta: routeMeta.adminLogin },
+  { path: 'admin/overview', meta: routeMeta.adminOverview },
+  { path: 'admin/enrollments', meta: routeMeta.adminEnrollments },
+  { path: 'admin/courses', meta: routeMeta.adminCourses },
+  { path: 'admin/students', meta: routeMeta.adminStudents },
+  { path: 'admin/content', meta: routeMeta.adminContent },
+  { path: 'admin/settings', meta: routeMeta.adminSettings },
 ]
 
 const escapeAttr = (value) =>

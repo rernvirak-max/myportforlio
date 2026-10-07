@@ -1,9 +1,6 @@
 /* Admin area — same light tokens as the public site. */
 .adm { min-height: 100vh; background: var(--bg); color: var(--text); font-family: "Outfit", system-ui, sans-serif; }
 .adm-wrap { max-width: 1200px; margin: 0 auto; padding: 24px 20px 64px; }
-.adm-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
-.adm-top h1 { font-size: 1.5rem; margin: 0; letter-spacing: -0.02em; }
-.adm-top p { margin: 2px 0 0; color: var(--muted); font-size: .9rem; }
 .adm-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; }
 .adm-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 40px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--border-strong); background: var(--surface); color: var(--text-2); font: inherit; font-weight: 500; font-size: .92rem; cursor: pointer; text-decoration: none; white-space: nowrap; }
 .adm-btn:hover { border-color: var(--accent-line); background: var(--accent-soft); color: var(--accent-ink); }

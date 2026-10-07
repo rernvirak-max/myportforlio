@@ -1,19 +1,35 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import { api, apiConfigured, clearToken, setUnauthorizedHandler } from '../../admin/api.js'
-import './admin.css'
+import { useRoute, useRouter } from 'vue-router'
+import { api, apiConfigured } from '../../admin/api.js'
 
 const STATUSES = ['new', 'contacted', 'enrolled', 'declined']
 const LANG = { en: 'English', km: 'Khmer' }
 const FORMAT = { online: 'Online', in_person: 'In person', either: 'Either' }
+const FILTERS_KEY = 'admin_enrollment_filters'
 
+const route = useRoute()
 const router = useRouter()
-const user = ref(null)
+
+function readStoredFilters() {
+  try {
+    const raw = sessionStorage.getItem(FILTERS_KEY)
+    if (!raw) return null
+    return JSON.parse(raw)
+  } catch {
+    return null
+  }
+}
+
+const stored = readStoredFilters()
 const stats = ref({ total: 0, by_status: {} })
 const rows = ref([])
 const meta = reactive({ current_page: 1, last_page: 1, total: 0, from: 0, to: 0 })
-const filters = reactive({ status: '', search: '', page: 1 })
+const filters = reactive({
+  status: typeof route.query.status === 'string' ? route.query.status : (stored?.status ?? 'new'),
+  search: stored?.search ?? '',
+  page: 1,
+})
 const loading = ref(false)
 const error = ref('')
 const flash = ref('')
@@ -23,14 +39,21 @@ const edit = reactive({ status: 'new', admin_note: '' })
 const saving = ref(false)
 const panelError = ref('')
 const exporting = ref(false)
-
-setUnauthorizedHandler(() => router.replace({ name: 'admin-login', query: { expired: 1 } }))
+const rowSavingId = ref(null)
 
 const query = () => {
   const p = new URLSearchParams()
   if (filters.status) p.set('status', filters.status)
   if (filters.search.trim()) p.set('search', filters.search.trim())
   return p
+}
+
+function persistFilters() {
+  try {
+    sessionStorage.setItem(FILTERS_KEY, JSON.stringify({ status: filters.status, search: filters.search }))
+  } catch {
+    /* ignore */
+  }
 }
 
 async function loadStats() {
@@ -49,7 +72,13 @@ async function loadList() {
     p.set('page', filters.page)
     const data = await api(`/admin/course-enquiries?${p}`)
     rows.value = data.data
-    Object.assign(meta, { current_page: data.current_page, last_page: data.last_page, total: data.total, from: data.from || 0, to: data.to || 0 })
+    Object.assign(meta, {
+      current_page: data.current_page,
+      last_page: data.last_page,
+      total: data.total,
+      from: data.from || 0,
+      to: data.to || 0,
+    })
   } catch (e) {
     if (e.status !== 401) error.value = e.message
   } finally {
@@ -60,11 +89,37 @@ async function loadList() {
 const refresh = () => Promise.all([loadList(), loadStats()])
 
 let searchTimer
-watch(() => filters.search, () => {
-  clearTimeout(searchTimer)
-  searchTimer = setTimeout(() => { filters.page = 1; loadList() }, 300)
-})
-watch(() => filters.status, () => { filters.page = 1; loadList() })
+watch(
+  () => filters.search,
+  () => {
+    clearTimeout(searchTimer)
+    searchTimer = setTimeout(() => {
+      filters.page = 1
+      persistFilters()
+      loadList()
+    }, 300)
+  },
+)
+watch(
+  () => filters.status,
+  () => {
+    filters.page = 1
+    persistFilters()
+    loadList()
+  },
+)
+
+watch(
+  () => route.query.status,
+  (status) => {
+    if (typeof status === 'string' && status !== filters.status) filters.status = status
+  },
+)
+
+watch(
+  () => route.query.open,
+  () => openFromQuery(),
+)
 
 function goPage(n) {
   if (n < 1 || n > meta.last_page) return
@@ -78,8 +133,17 @@ function open(row) {
   edit.admin_note = row.admin_note || ''
   panelError.value = ''
 }
-const close = () => { selected.value = null }
-const onKey = (e) => { if (e.key === 'Escape') close() }
+const close = () => {
+  selected.value = null
+  if (route.query.open) {
+    const q = { ...route.query }
+    delete q.open
+    router.replace({ query: q })
+  }
+}
+const onKey = (e) => {
+  if (e.key === 'Escape') close()
+}
 
 async function save() {
   saving.value = true
@@ -98,6 +162,34 @@ async function save() {
     panelError.value = e.message
   } finally {
     saving.value = false
+  }
+}
+
+async function quickStatus(row, status, event) {
+  event?.stopPropagation()
+  if (row.status === status) return
+  rowSavingId.value = row.id
+  error.value = ''
+  try {
+    const { data } = await api(`/admin/course-enquiries/${row.id}`, {
+      method: 'PATCH',
+      body: { status },
+    })
+    const i = rows.value.findIndex((r) => r.id === data.id)
+    if (i !== -1) {
+      if (filters.status && filters.status !== data.status) rows.value.splice(i, 1)
+      else rows.value[i] = data
+    }
+    if (selected.value?.id === data.id) {
+      selected.value = data
+      edit.status = data.status
+    }
+    flash.value = `${data.name} → ${status}`
+    loadStats()
+  } catch (e) {
+    if (e.status !== 401) error.value = e.message
+  } finally {
+    rowSavingId.value = null
   }
 }
 
@@ -138,20 +230,17 @@ async function exportCsv() {
   }
 }
 
-async function logout() {
-  try {
-    await api('/admin/logout', { method: 'POST' })
-  } catch {
-    /* token may already be invalid — sign out locally anyway */
-  }
-  clearToken()
-  router.replace({ name: 'admin-login' })
-}
-
 const fmtDate = (iso) =>
-  iso ? new Date(iso).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''
+  iso
+    ? new Date(iso).toLocaleString('en-GB', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : ''
 
-// Contact field is free text: Telegram @handle, t.me link, or phone number.
 function telegramLink(contact) {
   const c = (contact || '').trim()
   const handle = c.match(/^(?:@|(?:https?:\/\/)?t\.me\/)([A-Za-z0-9_]{4,32})$/)
@@ -163,104 +252,176 @@ function telegramLink(contact) {
   }
   return null
 }
-const mailto = (r) => `mailto:${r.email}?subject=${encodeURIComponent('Your full-stack course enquiry')}&body=${encodeURIComponent(`Hi ${r.name},\n\n`)}`
+const mailto = (r) =>
+  `mailto:${r.email}?subject=${encodeURIComponent('Your full-stack course enquiry')}&body=${encodeURIComponent(`Hi ${r.name},\n\n`)}`
 
-const dirty = computed(() => selected.value && (edit.status !== selected.value.status || (edit.admin_note || '') !== (selected.value.admin_note || '')))
+const dirty = computed(
+  () =>
+    selected.value &&
+    (edit.status !== selected.value.status || (edit.admin_note || '') !== (selected.value.admin_note || '')),
+)
 
-watch(flash, (v) => { if (v) setTimeout(() => { if (flash.value === v) flash.value = '' }, 3500) })
+const emptyMessage = computed(() => {
+  if (filters.status === 'new' && !filters.search.trim()) return 'No new requests — nice.'
+  if (filters.search || filters.status) return 'No requests match these filters.'
+  return 'No course requests yet.'
+})
+
+watch(flash, (v) => {
+  if (v) setTimeout(() => {
+    if (flash.value === v) flash.value = ''
+  }, 3500)
+})
+
+async function openFromQuery() {
+  const id = route.query.open
+  if (!id || !apiConfigured) return
+  try {
+    const payload = await api(`/admin/course-enquiries/${id}`)
+    const row = payload.data || payload
+    open(row)
+  } catch (e) {
+    if (e.status !== 401) error.value = e.message
+  }
+}
 
 onMounted(async () => {
   window.addEventListener('keydown', onKey)
   if (!apiConfigured) return
-  try {
-    user.value = (await api('/admin/me')).user
-  } catch (e) {
-    if (e.status !== 401) error.value = e.message
-  }
-  refresh()
+  await refresh()
+  await openFromQuery()
 })
-onBeforeUnmount(() => {
-  window.removeEventListener('keydown', onKey)
-  setUnauthorizedHandler(() => {})
-})
+onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 </script>
 
 <template>
-  <div class="adm">
-    <div class="adm-wrap">
-      <header class="adm-top">
-        <div>
-          <h1>Course requests</h1>
-          <p v-if="user">Signed in as {{ user.email }}</p>
-        </div>
-        <div class="top-actions">
-          <button class="adm-btn" type="button" :disabled="exporting || !apiConfigured" @click="exportCsv">
-            {{ exporting ? 'Exporting…' : 'Export CSV' }}
-          </button>
-          <button class="adm-btn" type="button" @click="logout">Log out</button>
-        </div>
-      </header>
-
-      <div v-if="!apiConfigured" class="adm-alert info">
-        API not configured. Set <code>VITE_API_URL</code> to the engine URL and rebuild the site.
-      </div>
-      <div v-if="error" class="adm-alert error" role="alert">
-        {{ error }} <button class="link" type="button" @click="refresh">Try again</button>
-      </div>
-      <div v-if="flash" class="adm-alert ok" role="status">{{ flash }}</div>
-
-      <section class="stats">
-        <button type="button" class="adm-card stat" :class="{ active: !filters.status }" @click="filters.status = ''">
-          <span class="stat-label">All</span><span class="stat-num">{{ stats.total }}</span>
-        </button>
-        <button v-for="s in STATUSES" :key="s" type="button" class="adm-card stat" :class="{ active: filters.status === s }" @click="filters.status = s">
-          <span class="stat-label"><span class="dot" :class="s" />{{ s }}</span>
-          <span class="stat-num">{{ stats.by_status[s] ?? 0 }}</span>
-        </button>
-      </section>
-
-      <section class="adm-card list">
-        <div class="toolbar">
-          <input v-model="filters.search" class="adm-input" type="search" placeholder="Search name, email or contact" aria-label="Search" />
-          <select v-model="filters.status" class="adm-select" aria-label="Filter by status">
-            <option value="">All statuses</option>
-            <option v-for="s in STATUSES" :key="s" :value="s">{{ s[0].toUpperCase() + s.slice(1) }}</option>
-          </select>
-        </div>
-
-        <div v-if="loading && !rows.length" class="empty">Loading…</div>
-        <div v-else-if="!rows.length" class="empty">
-          {{ filters.search || filters.status ? 'No requests match these filters.' : 'No course requests yet.' }}
-        </div>
-
-        <table v-else class="table" :class="{ busy: loading }">
-          <thead>
-            <tr><th>Name</th><th>Email</th><th>Contact</th><th>Language</th><th>Format</th><th>Level</th><th>Date</th><th>Status</th></tr>
-          </thead>
-          <tbody>
-            <tr v-for="r in rows" :key="r.id" tabindex="0" :class="{ sel: selected?.id === r.id }" @click="open(r)" @keydown.enter="open(r)">
-              <td class="name" data-label="Name">{{ r.name }}</td>
-              <td data-label="Email">{{ r.email }}</td>
-              <td data-label="Contact">{{ r.contact || '—' }}</td>
-              <td data-label="Language">{{ LANG[r.language] || r.language }}</td>
-              <td data-label="Format">{{ FORMAT[r.format] || r.format }}</td>
-              <td data-label="Level">{{ r.level }}</td>
-              <td data-label="Date" class="date">{{ fmtDate(r.created_at) }}</td>
-              <td data-label="Status"><span class="badge" :class="r.status">{{ r.status }}</span></td>
-            </tr>
-          </tbody>
-        </table>
-
-        <nav v-if="meta.total" class="pager" aria-label="Pagination">
-          <span>{{ meta.from }}–{{ meta.to }} of {{ meta.total }}</span>
-          <div>
-            <button class="adm-btn sm" type="button" :disabled="meta.current_page <= 1 || loading" @click="goPage(meta.current_page - 1)">Previous</button>
-            <span class="pg">Page {{ meta.current_page }} / {{ meta.last_page }}</span>
-            <button class="adm-btn sm" type="button" :disabled="meta.current_page >= meta.last_page || loading" @click="goPage(meta.current_page + 1)">Next</button>
-          </div>
-        </nav>
-      </section>
+  <div class="enrollments">
+    <div class="page-actions">
+      <button class="adm-btn" type="button" :disabled="exporting || !apiConfigured" @click="exportCsv">
+        {{ exporting ? 'Exporting…' : 'Export CSV' }}
+      </button>
     </div>
+
+    <div v-if="error" class="adm-alert error" role="alert">
+      {{ error }} <button class="link" type="button" @click="refresh">Try again</button>
+    </div>
+    <div v-if="flash" class="adm-alert ok" role="status">{{ flash }}</div>
+
+    <section class="stats">
+      <button type="button" class="adm-card stat" :class="{ active: !filters.status }" @click="filters.status = ''">
+        <span class="stat-label">All</span><span class="stat-num">{{ stats.total }}</span>
+      </button>
+      <button
+        v-for="s in STATUSES"
+        :key="s"
+        type="button"
+        class="adm-card stat"
+        :class="{ active: filters.status === s }"
+        @click="filters.status = s"
+      >
+        <span class="stat-label"><span class="dot" :class="s" />{{ s }}</span>
+        <span class="stat-num">{{ stats.by_status[s] ?? 0 }}</span>
+      </button>
+    </section>
+
+    <section class="adm-card list">
+      <div class="toolbar">
+        <input
+          v-model="filters.search"
+          class="adm-input"
+          type="search"
+          placeholder="Search name, email or contact"
+          aria-label="Search"
+        />
+        <select v-model="filters.status" class="adm-select" aria-label="Filter by status">
+          <option value="">All statuses</option>
+          <option v-for="s in STATUSES" :key="s" :value="s">{{ s[0].toUpperCase() + s.slice(1) }}</option>
+        </select>
+      </div>
+
+      <div v-if="loading && !rows.length" class="empty">Loading…</div>
+      <div v-else-if="!rows.length" class="empty">{{ emptyMessage }}</div>
+
+      <table v-else class="table" :class="{ busy: loading }">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Contact</th>
+            <th>Language</th>
+            <th>Format</th>
+            <th>Level</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="r in rows"
+            :key="r.id"
+            tabindex="0"
+            :class="{ sel: selected?.id === r.id }"
+            @click="open(r)"
+            @keydown.enter="open(r)"
+          >
+            <td class="name" data-label="Name">{{ r.name }}</td>
+            <td data-label="Email">{{ r.email }}</td>
+            <td data-label="Contact">{{ r.contact || '—' }}</td>
+            <td data-label="Language">{{ LANG[r.language] || r.language }}</td>
+            <td data-label="Format">{{ FORMAT[r.format] || r.format }}</td>
+            <td data-label="Level">{{ r.level }}</td>
+            <td data-label="Date" class="date">{{ fmtDate(r.created_at) }}</td>
+            <td data-label="Status" @click.stop>
+              <select
+                class="adm-select status-inline"
+                :value="r.status"
+                :disabled="rowSavingId === r.id"
+                :aria-label="`Status for ${r.name}`"
+                @change="quickStatus(r, $event.target.value, $event)"
+              >
+                <option v-for="s in STATUSES" :key="s" :value="s">{{ s }}</option>
+              </select>
+            </td>
+            <td data-label="Actions" class="actions" @click.stop>
+              <a class="icon-btn" :href="mailto(r)" title="Email" aria-label="Email" @click.stop>
+                <i class="bi bi-envelope" aria-hidden="true" />
+              </a>
+              <a
+                v-if="telegramLink(r.contact)"
+                class="icon-btn"
+                :href="telegramLink(r.contact)"
+                target="_blank"
+                rel="noopener"
+                title="Telegram"
+                aria-label="Telegram"
+                @click.stop
+              >
+                <i class="bi bi-telegram" aria-hidden="true" />
+              </a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <nav v-if="meta.total" class="pager" aria-label="Pagination">
+        <span>{{ meta.from }}–{{ meta.to }} of {{ meta.total }}</span>
+        <div>
+          <button class="adm-btn sm" type="button" :disabled="meta.current_page <= 1 || loading" @click="goPage(meta.current_page - 1)">
+            Previous
+          </button>
+          <span class="pg">Page {{ meta.current_page }} / {{ meta.last_page }}</span>
+          <button
+            class="adm-btn sm"
+            type="button"
+            :disabled="meta.current_page >= meta.last_page || loading"
+            @click="goPage(meta.current_page + 1)"
+          >
+            Next
+          </button>
+        </div>
+      </nav>
+    </section>
 
     <Transition name="fade">
       <div v-if="selected" class="scrim" @click="close" />
@@ -277,7 +438,15 @@ onBeforeUnmount(() => {
 
         <div class="quick">
           <a class="adm-btn sm" :href="mailto(selected)">Email</a>
-          <a v-if="telegramLink(selected.contact)" class="adm-btn sm" :href="telegramLink(selected.contact)" target="_blank" rel="noopener">Telegram</a>
+          <a
+            v-if="telegramLink(selected.contact)"
+            class="adm-btn sm"
+            :href="telegramLink(selected.contact)"
+            target="_blank"
+            rel="noopener"
+          >
+            Telegram
+          </a>
         </div>
 
         <dl class="facts">
@@ -298,11 +467,19 @@ onBeforeUnmount(() => {
           <option v-for="s in STATUSES" :key="s" :value="s">{{ s[0].toUpperCase() + s.slice(1) }}</option>
         </select>
         <label class="adm-label" for="note" style="margin-top: 14px">Private note</label>
-        <textarea id="note" v-model="edit.admin_note" class="adm-textarea" maxlength="5000" placeholder="e.g. Called on Monday, starts next intake" />
+        <textarea
+          id="note"
+          v-model="edit.admin_note"
+          class="adm-textarea"
+          maxlength="5000"
+          placeholder="e.g. Called on Monday, starts next intake"
+        />
 
         <div class="panel-actions">
           <button class="adm-btn danger" type="button" :disabled="saving" @click="remove">Delete</button>
-          <button class="adm-btn primary" type="button" :disabled="saving || !dirty" @click="save">{{ saving ? 'Saving…' : 'Save changes' }}</button>
+          <button class="adm-btn primary" type="button" :disabled="saving || !dirty" @click="save">
+            {{ saving ? 'Saving…' : 'Save changes' }}
+          </button>
         </div>
       </aside>
     </Transition>
@@ -310,7 +487,7 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-.top-actions { display: flex; gap: 8px; }
+.page-actions { display: flex; justify-content: flex-end; margin-bottom: 12px; }
 .link { background: none; border: 0; padding: 0; color: inherit; font: inherit; text-decoration: underline; cursor: pointer; }
 .stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 16px; }
 .stat { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 16px 18px; font: inherit; color: inherit; text-align: left; cursor: pointer; }
@@ -333,6 +510,13 @@ onBeforeUnmount(() => {
 .table tbody tr:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .name { font-weight: 600; }
 .date { white-space: nowrap; color: var(--muted); }
+.status-inline { height: 34px; min-width: 118px; padding: 0 8px; font-size: .82rem; text-transform: capitalize; }
+.actions { display: flex; gap: 6px; white-space: nowrap; }
+.icon-btn {
+  width: 34px; height: 34px; display: inline-grid; place-items: center;
+  border: 1px solid var(--border-strong); border-radius: 10px; color: var(--text-2); background: var(--surface); text-decoration: none;
+}
+.icon-btn:hover { background: var(--accent-soft); color: var(--accent-ink); border-color: var(--accent-line); }
 .pager { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 14px; font-size: .88rem; color: var(--muted); }
 .pager > div { display: flex; align-items: center; gap: 8px; }
 .scrim { position: fixed; inset: 0; background: rgb(10 10 10 / 25%); z-index: 40; }
@@ -369,10 +553,9 @@ h3 { font-size: .85rem; color: var(--muted); font-weight: 500; margin: 0 0 6px; 
   .table td[data-label="Format"]::before, .table td[data-label="Level"]::before { content: "·"; margin: 0 6px; }
   .table td[data-label="Contact"] { order: 6; flex-basis: 100%; }
   .table td[data-label="Date"] { order: 7; flex-basis: 100%; font-size: .8rem; }
+  .table td[data-label="Actions"] { order: 8; flex-basis: 100%; margin-top: 8px; }
 }
 @media (max-width: 560px) {
-  .adm-wrap { padding: 16px 12px 48px; }
-  .adm-top { flex-wrap: wrap; }
   .stats { grid-template-columns: repeat(2, 1fr); gap: 8px; }
   .stats .stat:first-child { grid-column: 1 / -1; }
   .stat { padding: 12px 14px; }

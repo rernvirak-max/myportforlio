@@ -3,6 +3,14 @@
 // Home must match the defaults in index.html.
 export const SITE_URL = 'https://roeun-vireak.mxlab.site'
 
+const adminMeta = (title, path) => ({
+  title: `${title} | Admin`,
+  description: 'Private admin area.',
+  canonical: `${SITE_URL}${path}`,
+  noindex: true,
+  adminTitle: title,
+})
+
 export const routeMeta = {
   home: {
     title: 'Vireak Roeun | Full-Stack Developer & DevOps Engineer',
@@ -23,10 +31,11 @@ export const routeMeta = {
     canonical: `${SITE_URL}/admin/login/`,
     noindex: true
   },
-  admin: {
-    title: 'Course requests | Admin',
-    description: 'Private admin area.',
-    canonical: `${SITE_URL}/admin/`,
-    noindex: true
-  }
+  admin: adminMeta('Admin', '/admin/'),
+  adminOverview: adminMeta('Overview', '/admin/overview/'),
+  adminEnrollments: adminMeta('Enrollments', '/admin/enrollments/'),
+  adminCourses: adminMeta('Courses & Classes', '/admin/courses/'),
+  adminStudents: adminMeta('Students', '/admin/students/'),
+  adminContent: adminMeta('Content', '/admin/content/'),
+  adminSettings: adminMeta('Settings', '/admin/settings/'),
 }
