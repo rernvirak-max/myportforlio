@@ -22,7 +22,7 @@
           <div class="tile tile-intro course-intro">
             <p class="eyebrow eyebrow-accent">
               <i class="bi bi-journal-code" aria-hidden="true"></i>
-              Online course · Enquiries
+              Online course · Enrolling now
             </p>
             <h1 id="course-title">{{ course.title }}</h1>
             <p class="hero-tagline course-tagline">{{ course.description }}</p>
@@ -33,9 +33,9 @@
               </li>
             </ul>
             <div class="hero-actions">
-              <a class="btn btn-accent btn-lg" href="#enquiry">
-                Send an enquiry
-                <i class="bi bi-arrow-down" aria-hidden="true"></i>
+              <a class="btn btn-accent btn-lg" href="#enroll">
+                Enroll now
+                <i class="bi bi-arrow-right" aria-hidden="true"></i>
               </a>
               <a class="btn btn-ghost btn-lg" :href="contact.telegramUrl" target="_blank" rel="noopener noreferrer">
                 <i class="bi bi-telegram" aria-hidden="true"></i>
@@ -44,50 +44,25 @@
             </div>
           </div>
 
-          <aside class="tile course-instructor" aria-labelledby="instructor-title">
-            <p class="tile-label">Your instructor</p>
-            <div class="instructor-head">
-              <picture>
-                <source :srcset="profileWebp" type="image/webp" />
-                <img :src="profileJpg" alt="" width="64" height="64" decoding="async" />
-              </picture>
-              <div>
-                <h2 id="instructor-title" class="instructor-name">Vireak Roeun</h2>
-                <p class="tile-note">Senior DevOps Officer &amp; Full-Stack Developer</p>
-              </div>
-            </div>
-            <ul class="instructor-facts" role="list">
-              <li v-for="item in instructorFacts" :key="item.text">
-                <span class="highlight-icon"><i :class="item.icon" aria-hidden="true"></i></span>
-                {{ item.text }}
-              </li>
-            </ul>
-          </aside>
-        </div>
-      </section>
-
-      <!-- Enquiry form + direct contact -->
-      <section id="enquiry" class="section course-section" aria-labelledby="enquiry-title">
-        <div class="container course-layout">
-          <div class="tile course-form-tile">
+          <div id="enroll" ref="enrollEl" class="tile course-form-tile" role="region" aria-labelledby="enroll-title">
             <header class="course-form-head">
               <p class="eyebrow">
                 <span class="eyebrow-index">01</span>
-                Enquiry
+                Enroll / Request a seat
               </p>
-              <h2 id="enquiry-title">Interested in the course?</h2>
+              <h2 id="enroll-title">Request a seat</h2>
               <p class="tile-note">
-                Tell me a little about yourself and what you’d like to learn.
-                <template v-if="apiEnabled">I’ll get your enquiry straight away and reply by email.</template>
+                Tell me a little about yourself and what you’d like to learn, and I’ll get in touch about your seat.
+                <template v-if="apiEnabled">I’ll get your request straight away and reply by email.</template>
                 <template v-else>Submitting opens your email app with everything filled in, ready to send.</template>
               </p>
             </header>
 
             <div v-if="submitted && submittedVia === 'api'" class="form-success" role="status">
               <span class="success-icon" aria-hidden="true"><i class="bi bi-check-lg"></i></span>
-              <h3 ref="successHeading" tabindex="-1">Thanks — your enquiry is in!</h3>
+              <h3 ref="successHeading" tabindex="-1">Enrollment request received!</h3>
               <p>
-                {{ apiMessage || 'I’ve received your enquiry.' }} I’ll reply to <strong>{{ form.email.trim() }}</strong>
+                I’ve received your enrollment request and I’ll contact you at <strong>{{ form.email.trim() }}</strong>
                 <template v-if="form.contact.trim()"> or on the contact you shared</template>.
               </p>
               <div class="form-success-actions">
@@ -97,7 +72,7 @@
                 </a>
                 <button class="btn btn-ghost" type="button" @click="startNewEnquiry">
                   <i class="bi bi-plus-lg" aria-hidden="true"></i>
-                  Send another enquiry
+                  Send another request
                 </button>
               </div>
             </div>
@@ -106,12 +81,12 @@
               <span class="success-icon" aria-hidden="true"><i class="bi bi-check-lg"></i></span>
               <h3 ref="successHeading" tabindex="-1">Almost done — just press Send</h3>
               <p>
-                Your email app should now be open with your enquiry addressed to
+                Your email app should now be open with your enrollment request addressed to
                 <strong>{{ contact.email }}</strong>. Press <strong>Send</strong> there and I’ll get back to you by email
                 <template v-if="form.contact.trim()"> or on the contact you shared</template>.
               </p>
               <p class="tile-note">
-                Email app didn’t open? Copy your enquiry and send it on Telegram instead, or email me directly.
+                Email app didn’t open? Copy your request and send it on Telegram instead, or email me directly.
               </p>
               <div class="form-success-actions">
                 <a class="btn btn-accent" :href="mailtoHref">
@@ -120,7 +95,7 @@
                 </a>
                 <button class="btn btn-ghost" type="button" @click="copyEnquiry">
                   <i :class="copyState === 'copied' ? 'bi bi-check2' : 'bi bi-clipboard'" aria-hidden="true"></i>
-                  {{ copyState === 'copied' ? 'Copied' : 'Copy enquiry' }}
+                  {{ copyState === 'copied' ? 'Copied' : 'Copy request' }}
                 </button>
                 <a class="btn btn-ghost" :href="contact.telegramUrl" target="_blank" rel="noopener noreferrer">
                   <i class="bi bi-telegram" aria-hidden="true"></i>
@@ -130,7 +105,7 @@
               <p class="copy-note" aria-live="polite">
                 <template v-if="copyState === 'copied'">Copied — paste it into your Telegram message.</template>
                 <template v-else-if="copyState === 'failed'">
-                  Couldn’t copy automatically. Your enquiry is shown below — select it and copy it by hand.
+                  Couldn’t copy automatically. Your request is shown below — select it and copy it by hand.
                 </template>
               </p>
               <textarea
@@ -139,11 +114,11 @@
                 :value="enquiryText"
                 readonly
                 rows="8"
-                aria-label="Your enquiry text"
+                aria-label="Your enrollment request text"
               ></textarea>
               <button class="link-button" type="button" @click="editEnquiry">
                 <i class="bi bi-pencil" aria-hidden="true"></i>
-                Edit my enquiry
+                Edit my request
               </button>
             </div>
 
@@ -333,16 +308,41 @@
                 <button class="btn btn-accent btn-lg" type="submit" :disabled="sending">
                   <span v-if="sending" class="btn-spinner" aria-hidden="true"></span>
                   <i v-else class="bi bi-send" aria-hidden="true"></i>
-                  {{ sending ? 'Sending…' : 'Send enquiry' }}
+                  {{ sending ? 'Sending…' : 'Request enrollment' }}
                 </button>
                 <p class="field-hint" aria-live="polite">
-                  <template v-if="sending">Sending your enquiry…</template>
-                  <template v-else-if="apiEnabled">Sent securely to me — used only to reply to your enquiry.</template>
+                  <template v-if="sending">Sending your enrollment request…</template>
+                  <template v-else-if="apiEnabled">Sent securely to me — used only to reply to your request.</template>
                   <template v-else>Opens your email app — nothing is stored on this site.</template>
                 </p>
               </div>
             </form>
           </div>
+        </div>
+      </section>
+
+      <!-- Instructor + direct contact -->
+      <section id="instructor" class="section course-section" aria-labelledby="instructor-title">
+        <div class="container course-layout">
+          <aside class="tile course-instructor" aria-labelledby="instructor-title">
+            <p class="tile-label">Your instructor</p>
+            <div class="instructor-head">
+              <picture>
+                <source :srcset="profileWebp" type="image/webp" />
+                <img :src="profileJpg" alt="" width="64" height="64" decoding="async" />
+              </picture>
+              <div>
+                <h2 id="instructor-title" class="instructor-name">Vireak Roeun</h2>
+                <p class="tile-note">Senior DevOps Officer &amp; Full-Stack Developer</p>
+              </div>
+            </div>
+            <ul class="instructor-facts" role="list">
+              <li v-for="item in instructorFacts" :key="item.text">
+                <span class="highlight-icon"><i :class="item.icon" aria-hidden="true"></i></span>
+                {{ item.text }}
+              </li>
+            </ul>
+          </aside>
 
           <aside class="course-aside" aria-labelledby="direct-title">
             <h2 id="direct-title" class="tile-label course-aside-title">Prefer to reach out directly?</h2>
@@ -388,6 +388,13 @@
         </div>
       </section>
     </main>
+
+    <div class="enroll-bar" :class="{ 'is-hidden': enrollInView }" :inert="enrollInView">
+      <a class="btn btn-accent btn-block" href="#enroll">
+        <i class="bi bi-mortarboard-fill" aria-hidden="true"></i>
+        Enroll now
+      </a>
+    </div>
 
     <footer class="site-footer">
       <div class="container footer-inner">
@@ -442,7 +449,7 @@ const directContacts = [
     label: 'Email',
     value: contact.email,
     note: 'Best for detailed questions.',
-    href: `mailto:${contact.email}?subject=${encodeURIComponent('Course enquiry')}`,
+    href: `mailto:${contact.email}?subject=${encodeURIComponent('Course enrollment')}`,
     icon: 'bi bi-envelope-fill',
     external: false
   },
@@ -468,11 +475,11 @@ const faqs = [
   },
   {
     q: 'Which language is it taught in?',
-    a: 'It is taught bilingually in English and Khmer. Let me know your preference in the enquiry form.'
+    a: 'It is taught bilingually in English and Khmer. Let me know your preference in the enrollment form.'
   },
   {
     q: 'Where can I find fees, dates, and schedules?',
-    a: 'They aren’t listed on this page. Send an enquiry or message me on Telegram with your questions.'
+    a: 'They aren’t listed on this page. Request a seat or message me on Telegram with your questions.'
   }
 ];
 
@@ -617,7 +624,7 @@ const enquiryText = computed(() => {
   const lines = [
     'Hi Vireak,',
     '',
-    `I'm interested in your ${course.title} (60-hour Laravel + Vue).`,
+    `I'd like to enroll in your ${course.title} (60-hour Laravel + Vue).`,
     '',
     `Name: ${form.name.trim()}`,
     `Email: ${form.email.trim()}`,
@@ -629,13 +636,13 @@ const enquiryText = computed(() => {
     'Message:',
     form.message.trim(),
     '',
-    '— Sent from the course enquiry page on roeun-vireak.mxlab.site'
+    '— Sent from the course enrollment page on roeun-vireak.mxlab.site'
   ];
   return lines.join('\r\n');
 });
 
 const mailtoHref = computed(() => {
-  const subject = `Course enquiry – ${form.name.trim() || 'Full-stack teaching course'}`;
+  const subject = `Course enrollment request – ${form.name.trim() || 'Full-stack teaching course'}`;
   return `mailto:${contact.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(enquiryText.value)}`;
 });
 
@@ -688,7 +695,7 @@ const submitToApi = async () => {
     });
   } catch {
     apiError.value =
-      'I couldn’t reach the server — please check your connection and try again, or send your enquiry by email or Telegram.';
+      'I couldn’t reach the server — please check your connection and try again, or send your request by email or Telegram.';
     return;
   }
 
@@ -715,8 +722,8 @@ const submitToApi = async () => {
 
   apiError.value =
     response.status === 429
-      ? 'You’ve sent a few enquiries in a row — please wait a minute and try again, or reach me by email or Telegram.'
-      : 'Sorry, something went wrong on my side and your enquiry wasn’t sent. Please try again in a moment, or use email or Telegram.';
+      ? 'You’ve sent a few requests in a row — please wait a minute and try again, or reach me by email or Telegram.'
+      : 'Sorry, something went wrong on my side and your request wasn’t sent. Please try again in a moment, or use email or Telegram.';
 };
 
 const handleSubmit = async () => {
@@ -778,12 +785,24 @@ const handleScroll = () => {
   isScrolled.value = window.scrollY > 8;
 };
 
+// Sticky mobile "Enroll now" bar hides while the form is on screen.
+const enrollEl = ref(null);
+const enrollInView = ref(false);
+let enrollObserver;
+
 onMounted(() => {
   window.addEventListener('scroll', handleScroll, { passive: true });
   handleScroll();
+  if ('IntersectionObserver' in window && enrollEl.value) {
+    enrollObserver = new IntersectionObserver(([entry]) => {
+      enrollInView.value = entry.isIntersecting;
+    }, { threshold: 0.1 });
+    enrollObserver.observe(enrollEl.value);
+  }
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', handleScroll);
+  enrollObserver?.disconnect();
 });
 </script>

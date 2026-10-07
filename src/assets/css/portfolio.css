@@ -2272,3 +2272,146 @@ textarea.input {
     animation-duration: 2s;
   }
 }
+
+/* --------------------------------------------------------------------------
+   Course: easy to find & enroll (nav pill, homepage banner, /course layout)
+   -------------------------------------------------------------------------- */
+.nav-course {
+  box-shadow: 0 0 0 3px var(--accent-soft), 0 6px 16px -8px rgba(79, 70, 229, 0.6);
+}
+
+.nav-desktop {
+  min-width: 0;
+}
+
+@media (max-width: 1279px) {
+  .nav-desktop a {
+    padding-inline: 0.6rem;
+    font-size: 0.875rem;
+  }
+
+  .nav-bar {
+    gap: 1rem;
+  }
+}
+
+.mobile-menu nav > a.mobile-course {
+  border-bottom: 0;
+  margin-bottom: 0.5rem;
+  padding: 0.95rem 1.1rem;
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
+.mobile-menu nav > a.mobile-course span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.course-banner-section {
+  padding: 0 0 1rem;
+}
+
+.course-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem 2rem;
+  flex-wrap: wrap;
+  padding: clamp(1.5rem, 3vw, 2.25rem);
+  border-color: var(--accent-line);
+  background: linear-gradient(135deg, var(--accent-soft), var(--surface) 70%);
+}
+
+.course-banner-body {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.course-banner .eyebrow-accent {
+  gap: 0.45rem;
+}
+
+.course-banner h2 {
+  font-size: clamp(1.6rem, 3.2vw, 2.25rem);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+.course-banner .course-chips {
+  margin-top: 0.25rem;
+}
+
+.course-banner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.course-hero-grid {
+  align-items: start;
+}
+
+.course-hero .course-intro h1 {
+  font-size: clamp(2.1rem, 4vw, 3.25rem);
+}
+
+@media (min-width: 1024px) {
+  .course-hero-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  }
+
+  .course-hero .course-intro {
+    position: sticky;
+    top: calc(var(--header-h) + 16px);
+  }
+
+  .course-hero .course-form-tile .course-form-head {
+    margin-bottom: 1.25rem;
+  }
+}
+
+.enroll-bar {
+  display: none;
+}
+
+@media (max-width: 639px) {
+  .course-banner-actions,
+  .course-banner-actions .btn {
+    width: 100%;
+  }
+
+  .course-page {
+    padding-bottom: 76px;
+  }
+
+  .enroll-bar {
+    display: block;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--border);
+    background: rgba(250, 250, 249, 0.95);
+    backdrop-filter: blur(8px);
+    transition: transform 0.25s var(--ease), opacity 0.25s ease;
+  }
+
+  .enroll-bar.is-hidden {
+    transform: translateY(110%);
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+@media (max-width: 420px) {
+  .nav-course-extra {
+    display: none;
+  }
+}

@@ -11,7 +11,7 @@
 
         <nav class="nav-desktop" aria-label="Primary">
           <a
-            v-for="item in menuItems"
+            v-for="item in desktopMenuItems"
             :key="item.href"
             :href="item.href"
             :class="{ active: activeSection === item.id }"
@@ -23,9 +23,13 @@
         </nav>
 
         <div class="nav-actions">
-          <a class="btn btn-dark btn-sm nav-cv" href="/Vireak-Roeun-CV.pdf" download>
+          <router-link class="btn btn-accent btn-sm nav-course" to="/course#enroll">
+            <i class="bi bi-mortarboard-fill" aria-hidden="true"></i>
+            Course<span class="nav-course-extra"> · Enroll</span>
+          </router-link>
+          <a class="btn btn-dark btn-sm nav-cv" href="/Vireak-Roeun-CV.pdf" download aria-label="Download CV">
             <i class="bi bi-download" aria-hidden="true"></i>
-            Download CV
+            CV
           </a>
           <button
             class="nav-toggle"
@@ -42,6 +46,10 @@
 
       <div id="mobile-menu" class="mobile-menu" :class="{ 'is-open': isMenuOpen }" :inert="!isMenuOpen">
         <nav class="container" aria-label="Mobile">
+          <router-link class="mobile-course" to="/course#enroll" @click="closeMenu">
+            <span><i class="bi bi-mortarboard-fill" aria-hidden="true"></i> Course · Enroll</span>
+            <i class="bi bi-arrow-right" aria-hidden="true"></i>
+          </router-link>
           <a
             v-for="item in menuItems"
             :key="item.href"
@@ -76,6 +84,10 @@
                 View work
                 <i class="bi bi-arrow-right" aria-hidden="true"></i>
               </a>
+              <router-link class="btn btn-ghost btn-lg" to="/course#enroll">
+                <i class="bi bi-mortarboard" aria-hidden="true"></i>
+                Enroll in my course
+              </router-link>
               <a class="btn btn-ghost btn-lg" href="/Vireak-Roeun-CV.pdf" download>
                 <i class="bi bi-download" aria-hidden="true"></i>
                 Download CV
@@ -143,6 +155,37 @@
                 </a>
               </li>
             </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Course banner -->
+      <section class="course-banner-section" aria-labelledby="course-banner-title">
+        <div class="container">
+          <div class="tile course-banner">
+            <div class="course-banner-body">
+              <p class="eyebrow eyebrow-accent">
+                <i class="bi bi-mortarboard-fill" aria-hidden="true"></i>
+                Online course · Enrolling now
+              </p>
+              <h2 id="course-banner-title">Full-stack teaching course</h2>
+              <ul class="course-chips" role="list" aria-label="Course highlights">
+                <li class="course-chip"><i class="bi bi-clock" aria-hidden="true"></i> 60 hours</li>
+                <li class="course-chip"><i class="bi bi-stack" aria-hidden="true"></i> Laravel + Vue</li>
+                <li class="course-chip"><i class="bi bi-translate" aria-hidden="true"></i> English &amp; Khmer</li>
+                <li class="course-chip"><i class="bi bi-kanban" aria-hidden="true"></i> Class Manager capstone</li>
+              </ul>
+            </div>
+            <div class="course-banner-actions">
+              <router-link class="btn btn-accent btn-lg" to="/course#enroll">
+                Enroll now
+                <i class="bi bi-arrow-right" aria-hidden="true"></i>
+              </router-link>
+              <a class="btn btn-ghost btn-lg" href="https://t.me/R_Vireak" target="_blank" rel="noopener noreferrer">
+                <i class="bi bi-telegram" aria-hidden="true"></i>
+                Message on Telegram
+              </a>
+            </div>
           </div>
         </div>
       </section>
@@ -399,6 +442,8 @@ const navItems = [
 
 // Top nav shows every section except Home (the logo links back to the top).
 const menuItems = navItems.filter((item) => item.id !== 'hero');
+// Desktop nav drops Education to make room for the Course pill (still in the mobile menu and page flow).
+const desktopMenuItems = menuItems.filter((item) => item.id !== 'education');
 
 const socialLinks = {
   github: 'https://github.com/rernvirak-max',
