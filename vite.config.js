@@ -19,6 +19,7 @@ const staticRoutes = [
   { path: 'admin/overview', meta: routeMeta.adminOverview },
   { path: 'admin/enrollments', meta: routeMeta.adminEnrollments },
   { path: 'admin/courses', meta: routeMeta.adminCourses },
+  { path: 'admin/courses/edit', meta: routeMeta.adminCourseEdit },
   { path: 'admin/students', meta: routeMeta.adminStudents },
   { path: 'admin/content', meta: routeMeta.adminContent },
   { path: 'admin/settings', meta: routeMeta.adminSettings },

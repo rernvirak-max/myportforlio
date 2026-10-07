@@ -23,3 +23,19 @@
 .badge.contacted { background: #fffbeb; color: #92400e; border-color: #fde68a; }
 .badge.enrolled { background: #f0fdf4; color: #166534; border-color: #bbf7d0; }
 .badge.declined { background: var(--surface-2); color: var(--muted); border-color: var(--border-strong); }
+/* Course/class manager (bento) */
+.adm-btn.pill { border-radius: 999px; }
+.adm-btn.icon { width: 34px; padding: 0; border-radius: 999px; }
+.adm-field { margin-bottom: 14px; }
+.adm-field.invalid .adm-input, .adm-field.invalid .adm-select, .adm-field.invalid .adm-textarea { border-color: #f87171; outline-color: #fecaca; }
+.adm-err { display: block; margin-top: 5px; color: #b91c1c; font-size: .8rem; }
+.adm-help { display: block; margin-top: 5px; color: var(--muted); font-size: .8rem; }
+.pill-st { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 11px; border-radius: 999px; font-size: .78rem; font-weight: 600; border: 1px solid; text-transform: capitalize; white-space: nowrap; }
+.pill-st::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.pill-st.open, .pill-st.published { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+.pill-st.full { background: #fffbeb; color: #b45309; border-color: #fde68a; }
+.pill-st.closed { background: #f4f4f5; color: #52525b; border-color: #e4e4e7; }
+.pill-st.draft { background: #eef2ff; color: #4338ca; border-color: #c7d2fe; }
+.progress { height: 8px; border-radius: 999px; background: #f1f1f0; overflow: hidden; }
+.progress > span { display: block; height: 100%; border-radius: inherit; background: #4F46E5; transition: width .3s; }
+.progress.ok > span { background: #16a34a; }

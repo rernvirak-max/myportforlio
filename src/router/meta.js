@@ -47,6 +47,7 @@ export const routeMeta = {
   adminOverview: adminMeta('Overview', '/admin/overview/'),
   adminEnrollments: adminMeta('Enrollments', '/admin/enrollments/'),
   adminCourses: adminMeta('Courses & Classes', '/admin/courses/'),
+  adminCourseEdit: adminMeta('Edit course', '/admin/courses/edit/'),
   adminStudents: adminMeta('Students', '/admin/students/'),
   adminContent: adminMeta('Content', '/admin/content/'),
   adminSettings: adminMeta('Settings', '/admin/settings/'),

@@ -61,6 +61,18 @@ const router = createRouter({
           meta: { ...routeMeta.adminCourses, requiresAdmin: true },
         },
         {
+          // Static-host friendly alias: dist/admin/courses/edit/index.html exists, so
+          // /admin/courses/edit/?id=5 survives a hard refresh even without SPA rewrites.
+          path: 'courses/edit',
+          redirect: (to) => (to.query.id ? { name: 'admin-course-edit', params: { id: String(to.query.id) }, query: { tab: to.query.tab } } : { name: 'admin-courses' }),
+        },
+        {
+          path: 'courses/:id(\\d+)',
+          name: 'admin-course-edit',
+          component: () => import('../views/admin/AdminCourseEditView.vue'),
+          meta: { ...routeMeta.adminCourseEdit, requiresAdmin: true },
+        },
+        {
           path: 'students',
           name: 'admin-students',
           component: () => import('../views/admin/AdminPlaceholderView.vue'),
