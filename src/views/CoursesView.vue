@@ -61,7 +61,15 @@
               <div><dt>Hours</dt><dd>{{ c.hours ? `${c.hours} h` : 'To be announced' }}</dd></div>
               <div><dt>Languages</dt><dd>{{ c.languages?.join(' & ') || '—' }}</dd></div>
               <div><dt>Level</dt><dd>{{ c.level || 'To be announced' }}</dd></div>
-              <div><dt>Price</dt><dd>{{ priceText(c) }}</dd></div>
+              <div class="course-spec-price">
+                <dt>Price</dt>
+                <dd v-if="pricing(c)">
+                  {{ pricing(c).from ? 'From ' : '' }}{{ pricing(c).label }}<s v-if="pricing(c).was" class="price-was"><span class="visually-hidden">Regular price </span>{{ pricing(c).was }}</s>
+                  <span v-if="pricing(c).earlyBird" class="price-tag">Early bird</span>
+                  <span v-if="pricing(c).monthly" class="price-monthly">or {{ pricing(c).monthly }}</span>
+                </dd>
+                <dd v-else>Price on request</dd>
+              </div>
             </dl>
             <div>
               <p class="course-sub">{{ c.outlinePending ? 'What it covers' : 'You will' }}</p>
@@ -113,16 +121,14 @@ import CourseHeader from '@/components/CourseHeader.vue'
 import CourseFooter from '@/components/CourseFooter.vue'
 import CoursePolicyTile from '@/components/CoursePolicyTile.vue'
 import { apiConfigured, engineAPI } from '@/helpers/api'
-import { MIN_STUDENTS, contact, coursePrice, loadCourses, mergeCourse, nextClassStatus, staticCourses } from '@/data/courses.js'
+import { MIN_STUDENTS, contact, coursePricing, loadCourses, mergeCourse, nextClassStatus, staticCourses } from '@/data/courses.js'
 import profileWebp from '@/assets/img/profile-520.webp'
 import profileJpg from '@/assets/img/profile-520.jpg'
 
 const courses = ref(staticCourses.map((c) => mergeCourse(null, c)))
 const status = (c) => nextClassStatus(c)
-const priceText = (c) => {
-  const p = coursePrice(c)
-  return p ? `${p.from ? 'From ' : ''}${p.label}` : 'Price on request'
-}
+// Cheapest effective price (early bird while it runs) + "or $Y/month" when installments exist.
+const pricing = (c) => coursePricing(c)
 
 onMounted(async () => {
   courses.value = await loadCourses(engineAPI, apiConfigured)

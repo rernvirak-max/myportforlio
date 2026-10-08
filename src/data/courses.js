@@ -1,5 +1,8 @@
 // Static course catalogue used when the engine API is unreachable or doesn't (yet) list a course.
 // Only facts Max has already published live here — no invented prices, dates, or curricula.
+// Prices and payment options (installments, deposit, early bird, referral) come only from the engine.
+import { formatMoney, num, paymentOptions, todayISO } from './paymentOptions.js'
+
 export const MIN_STUDENTS = 4
 
 export const FULL_STACK_SLUG = 'full-stack-teaching-course'
@@ -96,15 +99,7 @@ export function mergeCourse(api, fallback = staticBySlug[api?.slug]) {
 export const minStudentsFor = (course, cohort) =>
   Number(cohort?.min_students) || Number(course?.minStudents) || MIN_STUDENTS
 
-const money = (price, currency) => {
-  const n = Number(price)
-  if (!Number.isFinite(n)) return null
-  try {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: currency || 'USD', maximumFractionDigits: n % 1 ? 2 : 0 }).format(n)
-  } catch {
-    return `${currency || ''} ${n}`.trim()
-  }
-}
+const money = (price, currency) => formatMoney(price, currency || 'USD')
 
 export const cohortPrice = (c) => (c?.price != null && c.price !== '' ? money(c.price, c.currency) : null)
 
@@ -115,6 +110,50 @@ export function coursePrice(course) {
   const min = priced.reduce((a, b) => (Number(b.price) < Number(a.price) ? b : a))
   return { label: money(min.price, min.currency), from: priced.length > 1 }
 }
+
+/**
+ * Card / hero price summary using the cheapest *effective* price (early bird while it runs)
+ * among open classes (falls back to any listed priced class). null → "Price on request".
+ * { label, was, from, monthly } — `was` is the struck-through regular price, `monthly` "$70/month".
+ */
+export function coursePricing(course, now = new Date()) {
+  const priced = (course?.cohorts || []).filter((c) => cohortPrice(c))
+  if (!priced.length) return null
+  const open = priced.filter((c) => c.status === 'open')
+  const pool = (open.length ? open : priced).map((c) => ({ c, o: paymentOptions(c, now) }))
+  const best = pool.reduce((a, b) => (b.o.effectivePrice < a.o.effectivePrice ? b : a))
+  const cur = best.o.currency
+  const withMonthly = best.o.installments ? best : pool
+    .filter((x) => x.o.installments && x.o.currency === cur)
+    .reduce((a, b) => (!a || b.o.installments.amount < a.o.installments.amount ? b : a), null)
+  return {
+    label: money(best.o.effectivePrice, cur),
+    was: best.o.earlyBird && best.o.effectivePrice < best.o.price ? money(best.o.price, cur) : null,
+    earlyBird: Boolean(best.o.earlyBird),
+    from: pool.length > 1,
+    monthly: withMonthly ? `${money(withMonthly.o.installments.amount, cur)}/month` : null,
+  }
+}
+
+/** Plain-text version of coursePricing for FAQ copy etc. */
+export const coursePriceText = (course) => {
+  const p = coursePricing(course)
+  return p ? `${p.from ? 'From ' : ''}${p.label}` : 'Price on request'
+}
+
+/** The next open class: soonest upcoming start date first, undated last. */
+export function nextOpenCohort(course, now = new Date()) {
+  const today = todayISO(now)
+  const open = (course?.cohorts || []).filter((c) => c.status === 'open')
+  const key = (c) => {
+    const d = c.start_date ? String(c.start_date).slice(0, 10) : null
+    if (!d) return `2|`
+    return d >= today ? `0|${d}` : `1|${d}`
+  }
+  return [...open].sort((a, b) => key(a).localeCompare(key(b)))[0] || null
+}
+
+export { num, paymentOptions }
 
 export const visibleCohorts = (course) =>
   (course?.cohorts || []).filter((c) => ['open', 'full', 'closed'].includes(c.status))

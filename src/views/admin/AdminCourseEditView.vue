@@ -2,8 +2,9 @@
 import { computed, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
-  COHORT_STATUSES, FORMAT_LABEL, confirmedSeats, deleteCohort, deleteCourse, fieldErrors, fmtDate, formatPrice, getCourse, slugify, updateCohort, updateCourse,
+  COHORT_ACCEPTS_PAYMENT_OPTIONS, COHORT_STATUSES, FORMAT_LABEL, confirmedSeats, pickPaymentFields, deleteCohort, deleteCourse, fieldErrors, fmtDate, formatPrice, getCourse, slugify, updateCohort, updateCourse,
 } from '../../admin/courseApi.js'
+import { paymentPills } from '../../data/paymentOptions.js'
 import { toast, toastError } from '../../admin/toast.js'
 import AdminToasts from '../../components/admin/AdminToasts.vue'
 import CourseModulesTab from '../../components/admin/CourseModulesTab.vue'
@@ -95,7 +96,9 @@ function cohortBody(c, patch) {
   return { title: c.title, start_date: c.start_date, end_date: c.end_date, schedule_text: c.schedule_text, format: c.format, seats: c.seats,
     // Resource returns the course default when unset; only keep a real override.
     min_students: c.min_students && c.min_students !== course.value.min_students ? c.min_students : null,
-    price: c.price === null || c.price === undefined ? null : Number(c.price), currency: c.currency, status: c.status, ...patch }
+    price: c.price === null || c.price === undefined ? null : Number(c.price), currency: c.currency, status: c.status,
+    // Echo back whichever payment fields the engine returned so a status change never clears them.
+    ...(COHORT_ACCEPTS_PAYMENT_OPTIONS ? pickPaymentFields(c) : {}), ...patch }
 }
 async function setCohortStatus(c, status) {
   try {
@@ -181,6 +184,9 @@ function onCohortSaved() { drawer.value = null; load(false) }
               <li><i class="bi bi-clock"></i> {{ c.schedule_text || 'Schedule TBA' }}</li>
               <li><i class="bi bi-tag"></i> {{ formatPrice(c) }}</li>
             </ul>
+            <ul v-if="paymentPills(c).length" class="paypills" aria-label="Payment options">
+              <li v-for="p in paymentPills(c)" :key="p.key" :class="{ muted: p.muted }"><i class="bi" :class="p.icon" aria-hidden="true"></i> {{ p.label }}</li>
+            </ul>
             <div class="prog">
               <div class="pl"><span><strong>{{ c.enrolled_count || 0 }}</strong> / {{ minFor(c) || '—' }} min</span><span>{{ c.seats_left }} of {{ c.seats }} seats left</span></div>
               <div class="progress" :class="{ ok: progressPct(c) >= 100 }"><span :style="{ width: progressPct(c) + '%' }"></span></div>
@@ -237,6 +243,9 @@ function onCohortSaved() { drawer.value = null; load(false) }
 .ctop { display: flex; justify-content: space-between; align-items: center; } .fmt { font-size: .8rem; color: var(--muted); padding: 4px 10px; border-radius: 999px; background: #fafaf9; }
 .cohort h3 { margin: 0; font-size: 1.1rem; letter-spacing: -0.01em; }
 .facts { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: .88rem; color: #3f3f46; } .facts i { color: #4F46E5; margin-right: 6px; }
+.paypills { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.paypills li { display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 10px; border-radius: 999px; background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; font-size: .78rem; font-weight: 600; white-space: nowrap; }
+.paypills li.muted { background: #f5f5f4; color: #525252; border-color: #e5e5e5; font-weight: 500; }
 .prog { display: grid; gap: 6px; padding: 12px; border-radius: 18px; background: #fafaf9; } .pl { display: flex; justify-content: space-between; font-size: .84rem; color: var(--muted); } .pl strong { color: var(--text); font-size: 1rem; }
 .quick, .cacts { display: flex; flex-wrap: wrap; gap: 6px; } .cacts { padding-top: 10px; border-top: 1px solid var(--border); }
 @media (max-width: 640px) {

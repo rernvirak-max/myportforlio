@@ -1,6 +1,9 @@
 // Course / module / cohort / enquiry admin calls. Contracts mirror the engine's
 // Admin\CourseController + Admin\CourseEnquiryController (Laravel, Sanctum bearer).
 import { api } from './api.js'
+import { PAYMENT_FIELDS, formatMoney } from '../data/paymentOptions.js'
+
+export { PAYMENT_FIELDS }
 
 export const COHORT_STATUSES = ['draft', 'open', 'full', 'closed']
 export const COHORT_FORMATS = ['online', 'in_person', 'hybrid']
@@ -49,6 +52,25 @@ export const updateEnquiry = async (id, body) =>
 /** The engine's UpdateCourseEnquiryRequest only validates status + admin_note, so cohort_id is dropped. */
 export const ENQUIRY_ACCEPTS_COHORT_ID = false
 
+/**
+ * Cohort payment options (installment_count/amount, deposit_amount, early_bird_price/until/seats,
+ * referral_discount). The engine's Store/UpdateCohortRequest don't list them yet, but both
+ * controller actions save `$request->validated()` only, so unknown keys are dropped silently
+ * (no 422). Sending them is therefore harmless, and they start saving as soon as the backend
+ * migration + validation land (see BACKEND-PAYMENT-OPTIONS.md). Set to false to stop sending.
+ */
+export const COHORT_ACCEPTS_PAYMENT_OPTIONS = true
+
+/** True when a cohort from the API carries the payment fields (i.e. the engine stores them). */
+export const hasPaymentFields = (c) => !!c && PAYMENT_FIELDS.some((k) => Object.prototype.hasOwnProperty.call(c, k))
+
+/** Only the payment keys the cohort actually has (for full-object PATCH bodies). */
+export function pickPaymentFields(c) {
+  const out = {}
+  PAYMENT_FIELDS.forEach((k) => { if (c && Object.prototype.hasOwnProperty.call(c, k)) out[k] = c[k] })
+  return out
+}
+
 /** Laravel 422 `errors` → { field: 'first message' } (nested keys like languages.0 → languages). */
 export function fieldErrors(e) {
   const out = {}
@@ -74,9 +96,7 @@ export const confirmedSeats = (c) => Math.max(0, (Number(c.seats) || 0) - (Numbe
 
 export function formatPrice(c) {
   if (c.price === null || c.price === undefined || c.price === '') return 'Price on request'
-  const n = Number(c.price)
-  if (c.currency === 'KHR') return `${Math.round(n).toLocaleString('en-US')} ៛`
-  return `${c.currency === 'USD' || !c.currency ? '$' : c.currency + ' '}${n.toLocaleString('en-US', { maximumFractionDigits: 2 })}`
+  return formatMoney(c.price, c.currency || 'USD') || 'Price on request'
 }
 
 export const fmtDate = (iso) =>

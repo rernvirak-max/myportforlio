@@ -50,9 +50,20 @@
           </div>
           <div class="tile course-fact course-fact-accent">
             <p class="tile-label"><i class="bi bi-tag" aria-hidden="true"></i> Price</p>
-            <p class="course-fact-value">{{ priceText }}</p>
+            <p class="course-fact-value">
+              <template v-if="pricing">
+                {{ pricing.from ? 'From ' : '' }}{{ pricing.label }}<s v-if="pricing.was" class="price-was"><span class="visually-hidden">Regular price </span>{{ pricing.was }}</s>
+                <span v-if="pricing.monthly" class="price-monthly">or {{ pricing.monthly }}</span>
+              </template>
+              <template v-else>Price on request</template>
+            </p>
           </div>
         </section>
+
+        <!-- Ways to pay (only when the next open class has payment options turned on) -->
+        <div v-if="payCohort && paymentOptions(payCohort).any" class="course-block">
+          <WaysToPayTile :course="course" :cohort="payCohort" @enroll="goEnroll" />
+        </div>
 
         <!-- Outline + classes -->
         <div class="course-split course-block">
@@ -94,8 +105,11 @@
                 <p class="cohort-meta">
                   {{ formatCohortDates(c) }}<template v-if="c.schedule_text"> · {{ c.schedule_text }}</template>
                   <template v-if="c.format"> · {{ formatLabel(c.format) }}</template>
-                  <template v-if="cohortPrice(c)"> · {{ cohortPrice(c) }}</template>
+                  <template v-if="cohortPrice(c)"> · {{ cohortPriceNow(c).label }}<s v-if="cohortPriceNow(c).was" class="price-was"><span class="visually-hidden">Regular price </span>{{ cohortPriceNow(c).was }}</s></template>
                 </p>
+                <ul v-if="c.status === 'open' && paymentPills(c).some((p) => !p.muted)" class="cohort-pay" aria-label="Payment options">
+                  <li v-for="p in paymentPills(c).filter((x) => !x.muted)" :key="p.key"><i class="bi" :class="p.icon" aria-hidden="true"></i>{{ p.label }}</li>
+                </ul>
                 <CohortProgress :course="course" :cohort="c" />
                 <button v-if="c.status === 'open'" class="btn btn-accent btn-sm" type="button" @click="goEnroll(c)">Request a seat</button>
               </li>
@@ -279,6 +293,23 @@
                 <p v-if="showError('contact')" class="field-error">{{ allErrors.contact }}</p>
               </div>
 
+              <div v-if="referralOffered" class="field">
+                <label class="field-label" for="cf-referral">
+                  Referred by <span class="field-optional">(optional)</span>
+                </label>
+                <input
+                  id="cf-referral"
+                  v-model="form.referredBy"
+                  class="input"
+                  type="text"
+                  name="referred_by"
+                  autocomplete="off"
+                  maxlength="80"
+                  placeholder="Your friend’s name or phone"
+                />
+                <p class="field-hint">Came with a friend? Add their name and you both get the friend discount.</p>
+              </div>
+
               <fieldset class="field choice-field" :class="{ 'has-error': showError('language') }">
                 <legend class="field-label">Preferred language</legend>
                 <div class="choice-group">
@@ -329,12 +360,12 @@
                   class="input"
                   name="message"
                   rows="5"
-                  :maxlength="MESSAGE_MAX"
+                  :maxlength="messageMax"
                   placeholder="What would you like to learn?"
                   :aria-invalid="showError('message') ? 'true' : 'false'"
                   @blur="touch('message')"
                 />
-                <p class="field-hint field-count">{{ form.message.length }} / {{ MESSAGE_MAX }}</p>
+                <p class="field-hint field-count">{{ form.message.length }} / {{ messageMax }}</p>
                 <p v-if="showError('message')" class="field-error">{{ allErrors.message }}</p>
               </div>
 
@@ -399,10 +430,12 @@ import CourseHeader from '@/components/CourseHeader.vue'
 import CourseFooter from '@/components/CourseFooter.vue'
 import CoursePolicyTile from '@/components/CoursePolicyTile.vue'
 import CohortProgress from '@/components/CohortProgress.vue'
+import WaysToPayTile from '@/components/WaysToPayTile.vue'
+import { formatMoney, paymentPills } from '@/data/paymentOptions.js'
 import { apiConfigured as apiEnabled, engineAPI, ApiError } from '@/helpers/api'
 import {
-  MIN_STUDENTS, contact, cohortPrice, coursePrice, formatCohortDates, formatLabel,
-  loadCourses, mergeCourse, staticBySlug, staticCourses, visibleCohorts,
+  MIN_STUDENTS, contact, cohortPrice, coursePriceText, coursePricing, formatCohortDates, formatLabel,
+  loadCourses, mergeCourse, nextOpenCohort, paymentOptions, staticBySlug, staticCourses, visibleCohorts,
 } from '@/data/courses.js'
 import profileWebp from '@/assets/img/profile-520.webp'
 import profileJpg from '@/assets/img/profile-520.jpg'
@@ -415,10 +448,16 @@ const notFound = ref(false)
 const allCourses = ref(staticCourses.map((c) => mergeCourse(null, c)))
 
 const cohorts = computed(() => visibleCohorts(course.value))
-const priceText = computed(() => {
-  const p = coursePrice(course.value)
-  return p ? `${p.from ? 'From ' : ''}${p.label}` : 'Price on request'
-})
+const pricing = computed(() => coursePricing(course.value))
+const priceText = computed(() => coursePriceText(course.value))
+const payCohort = computed(() => nextOpenCohort(course.value))
+/** Class price right now: early-bird price with the regular one struck through while it runs. */
+const cohortPriceNow = (c) => {
+  const o = paymentOptions(c)
+  return o.earlyBird
+    ? { label: formatMoney(o.effectivePrice, o.currency), was: formatMoney(o.price, o.currency) }
+    : { label: cohortPrice(c), was: null }
+}
 
 // Enrollment target (course preselected from the page, switchable in the form)
 const formCourseSlug = ref(slug.value)
@@ -528,7 +567,22 @@ const form = reactive({
   format: '',
   level: '',
   message: '',
+  referredBy: '',
 })
+
+// Refer-a-friend: only asked when a class of the chosen course offers it. Sent inside the
+// existing `message` text as a "[Referred by: …]" prefix — no new payload key.
+const referralOffered = computed(() => {
+  const list = formCohort.value ? [formCohort.value] : formCohorts.value.filter((c) => c.status === 'open')
+  return list.some((c) => paymentOptions(c).referral)
+})
+const referralTag = computed(() => {
+  const who = form.referredBy.trim().replace(/[[\]]/g, '')
+  return referralOffered.value && who ? `[Referred by: ${who}] ` : ''
+})
+const messagePrefix = computed(() => (formCourse.value?.id ? '' : `[${formCourse.value?.title || 'Course'}] `) + referralTag.value)
+const composedMessage = computed(() => `${messagePrefix.value}${form.message.trim()}`)
+const messageMax = computed(() => MESSAGE_MAX - messagePrefix.value.length)
 
 const LANGUAGE_CODES = { English: 'en', Khmer: 'km' }
 const FORMAT_CODES = { Online: 'online', 'In person': 'in_person', Either: 'either' }
@@ -576,6 +630,7 @@ const errors = computed(() => {
 
   if (!message) result.message = 'Please add a short message about what you’d like to learn.'
   else if (message.length < 10) result.message = 'Could you add a little more detail? A sentence or two is perfect.'
+  else if (message.length > messageMax.value) result.message = `Please keep your message under ${messageMax.value} characters.`
 
   return result
 })
@@ -613,6 +668,7 @@ const enquiryText = computed(() => {
     `Name: ${form.name.trim()}`,
     `Email: ${form.email.trim()}`,
     `Phone / Telegram: ${form.contact.trim() || 'Not provided'}`,
+    ...(referralTag.value ? [`Referred by: ${form.referredBy.trim()}`] : []),
     `Preferred language: ${form.language}`,
     `Learning format: ${form.format}`,
     `Experience level: ${form.level}`,
@@ -669,7 +725,7 @@ const submitToApi = async () => {
     language: LANGUAGE_CODES[form.language] ?? form.language,
     format: FORMAT_CODES[form.format] ?? form.format,
     level: form.level,
-    message: formCourse.value?.id ? form.message.trim() : `[${formCourse.value?.title || 'Course'}] ${form.message.trim()}`,
+    message: composedMessage.value,
     website: honeypot.value,
     course_id: formCourse.value?.id || null,
     cohort_id: formCohortId.value || null,
@@ -745,7 +801,7 @@ const copyEnquiry = async () => {
 }
 
 const startNewEnquiry = async () => {
-  Object.assign(form, { name: '', email: '', contact: '', language: '', format: '', level: '', message: '' })
+  Object.assign(form, { name: '', email: '', contact: '', language: '', format: '', level: '', message: '', referredBy: '' })
   Object.keys(touched).forEach((key) => delete touched[key])
   Object.keys(serverErrors).forEach((key) => delete serverErrors[key])
   apiMessage.value = ''
