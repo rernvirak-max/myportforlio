@@ -123,263 +123,6 @@
 
         <div class="course-block"><CoursePolicyTile /></div>
 
-        <!-- Enroll -->
-        <section id="enroll" ref="enrollEl" class="tile course-enroll course-block" aria-labelledby="enroll-title">
-          <div class="course-enroll-intro">
-            <p class="tile-label">Enroll</p>
-            <h2 id="enroll-title" class="panel-title">Request your seat</h2>
-            <p class="tile-note">
-              Tell me a little about yourself.
-              <template v-if="apiEnabled"> Your request comes straight to me and I’ll reply by email or Telegram.</template>
-              <template v-else> Submitting opens your email app with everything filled in.</template>
-            </p>
-            <ul class="enroll-facts" role="list">
-              <li><i class="bi bi-people" aria-hidden="true"></i> Classes open at {{ MIN_STUDENTS }} students</li>
-              <li><i class="bi bi-chat-dots" aria-hidden="true"></i> I’ll contact you to confirm before the class starts</li>
-              <li><i class="bi bi-translate" aria-hidden="true"></i> English or Khmer — your choice</li>
-            </ul>
-            <p class="tile-note enroll-alt">
-              Prefer chat? <a :href="contact.telegramUrl" target="_blank" rel="noopener noreferrer">Telegram {{ contact.telegramHandle }}</a>
-              · <a :href="`mailto:${contact.email}`">{{ contact.email }}</a>
-            </p>
-          </div>
-
-          <div class="course-enroll-panel" role="region" aria-labelledby="enroll-title">
-            <div v-if="submitted && submittedVia === 'api'" class="form-success" role="status">
-              <span class="success-icon" aria-hidden="true"><i class="bi bi-check-lg"></i></span>
-              <h3 ref="successHeading" tabindex="-1">Enrollment request received</h3>
-              <p>
-                I’ll contact you at <strong>{{ form.email.trim() }}</strong>
-                <template v-if="form.contact.trim()"> or on the contact you shared</template>.
-              </p>
-              <div class="form-success-actions">
-                <a class="btn btn-ghost" :href="contact.telegramUrl" target="_blank" rel="noopener noreferrer">
-                  <i class="bi bi-telegram" aria-hidden="true"></i>
-                  Telegram
-                </a>
-                <button class="btn btn-ghost" type="button" @click="startNewEnquiry">Send another</button>
-              </div>
-            </div>
-
-            <div v-else-if="submitted" class="form-success" role="status">
-              <span class="success-icon" aria-hidden="true"><i class="bi bi-check-lg"></i></span>
-              <h3 ref="successHeading" tabindex="-1">Almost done — press Send</h3>
-              <p>
-                Your email app should open with the request to <strong>{{ contact.email }}</strong>.
-              </p>
-              <div class="form-success-actions">
-                <a class="btn btn-accent" :href="mailtoHref">Open email again</a>
-                <button class="btn btn-ghost" type="button" @click="copyEnquiry">
-                  {{ copyState === 'copied' ? 'Copied' : 'Copy request' }}
-                </button>
-              </div>
-              <p class="copy-note" aria-live="polite">
-                <template v-if="copyState === 'copied'">Copied — paste it into Telegram if you prefer.</template>
-                <template v-else-if="copyState === 'failed'">Couldn’t copy — select the text below.</template>
-              </p>
-              <textarea
-                v-if="copyState === 'failed'"
-                class="input enquiry-preview"
-                :value="enquiryText"
-                readonly
-                rows="8"
-                aria-label="Your enrollment request text"
-              />
-              <button class="link-button" type="button" @click="editEnquiry">Edit my request</button>
-            </div>
-
-            <form v-else class="course-form" novalidate :aria-busy="sending ? 'true' : 'false'" @submit.prevent="handleSubmit">
-              <div v-if="apiError" class="form-alert" role="alert">
-                <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
-                <span>
-                  {{ apiError }}
-                  <span class="form-alert-actions">
-                    <a :href="mailtoHref" @click="markMailtoFallback">Email instead</a>
-                    ·
-                    <a :href="contact.telegramUrl" target="_blank" rel="noopener noreferrer">Telegram</a>
-                  </span>
-                </span>
-              </div>
-
-              <div class="hp-field" aria-hidden="true">
-                <label for="cf-website">Website</label>
-                <input id="cf-website" v-model="honeypot" type="text" name="website" tabindex="-1" autocomplete="off" />
-              </div>
-
-              <div v-if="showSummary && errorCount" class="form-alert" role="alert">
-                <i class="bi bi-info-circle-fill" aria-hidden="true"></i>
-                <span>
-                  {{ errorCount === 1 ? 'One thing needs a quick look' : `${errorCount} things need a quick look` }}
-                  before sending.
-                </span>
-              </div>
-
-              <div class="form-row">
-                <div class="field">
-                  <label class="field-label" for="cf-course">Course</label>
-                  <div class="select-wrap">
-                    <select id="cf-course" v-model="formCourseSlug" class="input" name="course">
-                      <option v-for="c in allCourses" :key="c.slug" :value="c.slug">{{ c.title }}</option>
-                    </select>
-                    <i class="bi bi-chevron-down" aria-hidden="true"></i>
-                  </div>
-                </div>
-                <div class="field">
-                  <label class="field-label" for="cf-cohort">Class</label>
-                  <div class="select-wrap">
-                    <select id="cf-cohort" v-model="formCohortId" class="input" name="cohort" :disabled="!formCohorts.length">
-                      <option :value="null">{{ formCohorts.length ? 'Next available class' : 'Next class (forming)' }}</option>
-                      <option v-for="c in formCohorts" :key="c.id" :value="c.id" :disabled="c.status !== 'open'">
-                        {{ c.title }} · {{ formatCohortDates(c) }}{{ c.status !== 'open' ? ` (${c.status})` : '' }}
-                      </option>
-                    </select>
-                    <i class="bi bi-chevron-down" aria-hidden="true"></i>
-                  </div>
-                </div>
-              </div>
-
-              <div class="form-row">
-                <div class="field" :class="{ 'has-error': showError('name') }">
-                  <label class="field-label" for="cf-name">Your name</label>
-                  <input
-                    id="cf-name"
-                    v-model="form.name"
-                    class="input"
-                    type="text"
-                    name="name"
-                    autocomplete="name"
-                    maxlength="80"
-                    :aria-invalid="showError('name') ? 'true' : 'false'"
-                    :aria-describedby="showError('name') ? 'cf-name-error' : undefined"
-                    @blur="touch('name')"
-                  />
-                  <p v-if="showError('name')" id="cf-name-error" class="field-error">{{ allErrors.name }}</p>
-                </div>
-                <div class="field" :class="{ 'has-error': showError('email') }">
-                  <label class="field-label" for="cf-email">Email</label>
-                  <input
-                    id="cf-email"
-                    v-model="form.email"
-                    class="input"
-                    type="email"
-                    name="email"
-                    autocomplete="email"
-                    inputmode="email"
-                    maxlength="120"
-                    :aria-invalid="showError('email') ? 'true' : 'false'"
-                    :aria-describedby="showError('email') ? 'cf-email-error' : undefined"
-                    @blur="touch('email')"
-                  />
-                  <p v-if="showError('email')" id="cf-email-error" class="field-error">{{ allErrors.email }}</p>
-                </div>
-              </div>
-
-              <div class="field" :class="{ 'has-error': showError('contact') }">
-                <label class="field-label" for="cf-contact">
-                  Phone or Telegram <span class="field-optional">(optional)</span>
-                </label>
-                <input
-                  id="cf-contact"
-                  v-model="form.contact"
-                  class="input"
-                  type="text"
-                  name="contact"
-                  autocomplete="tel"
-                  maxlength="80"
-                  placeholder="e.g. 012 345 678 or @username"
-                  :aria-invalid="showError('contact') ? 'true' : 'false'"
-                  @blur="touch('contact')"
-                />
-                <p v-if="showError('contact')" class="field-error">{{ allErrors.contact }}</p>
-              </div>
-
-              <div v-if="referralOffered" class="field">
-                <label class="field-label" for="cf-referral">
-                  Referred by <span class="field-optional">(optional)</span>
-                </label>
-                <input
-                  id="cf-referral"
-                  v-model="form.referredBy"
-                  class="input"
-                  type="text"
-                  name="referred_by"
-                  autocomplete="off"
-                  maxlength="80"
-                  placeholder="Your friend’s name or phone"
-                />
-                <p class="field-hint">Came with a friend? Add their name and you both get the friend discount.</p>
-              </div>
-
-              <fieldset class="field choice-field" :class="{ 'has-error': showError('language') }">
-                <legend class="field-label">Preferred language</legend>
-                <div class="choice-group">
-                  <label v-for="option in languageOptions" :key="option.value" class="choice">
-                    <input v-model="form.language" type="radio" name="language" :value="option.value" @change="touch('language')" />
-                    {{ option.label }}
-                  </label>
-                </div>
-                <p v-if="showError('language')" class="field-error">{{ allErrors.language }}</p>
-              </fieldset>
-
-              <fieldset class="field choice-field" :class="{ 'has-error': showError('format') }">
-                <legend class="field-label">Learning format</legend>
-                <div class="choice-group">
-                  <label v-for="option in formatOptions" :key="option.value" class="choice">
-                    <input v-model="form.format" type="radio" name="format" :value="option.value" @change="touch('format')" />
-                    {{ option.label }}
-                  </label>
-                </div>
-                <p v-if="showError('format')" class="field-error">{{ allErrors.format }}</p>
-              </fieldset>
-
-              <div class="field" :class="{ 'has-error': showError('level') }">
-                <label class="field-label" for="cf-level">Your experience level</label>
-                <div class="select-wrap">
-                  <select
-                    id="cf-level"
-                    v-model="form.level"
-                    class="input"
-                    name="level"
-                    :aria-invalid="showError('level') ? 'true' : 'false'"
-                    @blur="touch('level')"
-                    @change="touch('level')"
-                  >
-                    <option value="" disabled>Choose one…</option>
-                    <option v-for="option in levelOptions" :key="option" :value="option">{{ option }}</option>
-                  </select>
-                  <i class="bi bi-chevron-down" aria-hidden="true"></i>
-                </div>
-                <p v-if="showError('level')" class="field-error">{{ allErrors.level }}</p>
-              </div>
-
-              <div class="field" :class="{ 'has-error': showError('message') }">
-                <label class="field-label" for="cf-message">Message</label>
-                <textarea
-                  id="cf-message"
-                  v-model="form.message"
-                  class="input"
-                  name="message"
-                  rows="5"
-                  :maxlength="messageMax"
-                  placeholder="What would you like to learn?"
-                  :aria-invalid="showError('message') ? 'true' : 'false'"
-                  @blur="touch('message')"
-                />
-                <p class="field-hint field-count">{{ form.message.length }} / {{ messageMax }}</p>
-                <p v-if="showError('message')" class="field-error">{{ allErrors.message }}</p>
-              </div>
-
-              <p class="form-policy"><i class="bi bi-people" aria-hidden="true"></i> Classes open at {{ MIN_STUDENTS }} students. I’ll contact you to confirm before the class starts.</p>
-              <div class="form-submit">
-                <button class="btn btn-accent btn-lg" type="submit" :disabled="sending">
-                  <span v-if="sending" class="btn-spinner" aria-hidden="true"></span>
-                  <i v-else class="bi bi-send" aria-hidden="true"></i>
-                  {{ sending ? 'Sending…' : 'Request enrollment' }}
-                </button>
-              </div>
-            </form>          </div>
-        </section>
-
         <!-- Instructor + FAQ -->
         <div class="course-split course-block">
           <section class="tile course-panel course-instructor" aria-labelledby="instructor-title">
@@ -412,12 +155,292 @@
       </template>
     </main>
 
-    <div v-if="!notFound" class="enroll-bar" :class="{ 'is-hidden': enrollInView }" :inert="enrollInView">
+    <div v-if="!notFound" class="enroll-bar" :class="{ 'is-hidden': enrollOpen }" :inert="enrollOpen">
       <button class="btn btn-accent btn-block" type="button" @click="goEnroll()">
         <i class="bi bi-mortarboard-fill" aria-hidden="true"></i>
         Request a seat
       </button>
     </div>
+
+    <Teleport to="body">
+      <div
+        v-if="enrollOpen && !notFound"
+        class="enroll-dialog-scrim"
+        @click.self="closeEnroll"
+      >
+        <div
+          id="enroll"
+          class="enroll-dialog"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="enroll-title"
+        >
+          <header class="enroll-dialog-head">
+            <div>
+              <p class="tile-label">Enroll</p>
+              <h2 id="enroll-title" class="panel-title">Request your seat</h2>
+            </div>
+            <button class="enroll-dialog-close" type="button" aria-label="Close" @click="closeEnroll">
+              <i class="bi bi-x-lg" aria-hidden="true"></i>
+            </button>
+          </header>
+
+          <div class="enroll-dialog-body">
+            <p class="tile-note enroll-dialog-lead">
+              Tell me a little about yourself.
+              <template v-if="apiEnabled"> Your request comes straight to me and I’ll reply by email or Telegram.</template>
+              <template v-else> Submitting opens your email app with everything filled in.</template>
+            </p>
+            <ul class="enroll-facts" role="list">
+              <li><i class="bi bi-people" aria-hidden="true"></i> Classes open at {{ MIN_STUDENTS }} students</li>
+              <li><i class="bi bi-chat-dots" aria-hidden="true"></i> I’ll contact you to confirm before the class starts</li>
+              <li><i class="bi bi-translate" aria-hidden="true"></i> English or Khmer — your choice</li>
+            </ul>
+            <p class="tile-note enroll-alt">
+              Prefer chat? <a :href="contact.telegramUrl" target="_blank" rel="noopener noreferrer">Telegram {{ contact.telegramHandle }}</a>
+              · <a :href="`mailto:${contact.email}`">{{ contact.email }}</a>
+            </p>
+
+            <div class="course-enroll-panel">
+              <div v-if="submitted && submittedVia === 'api'" class="form-success" role="status">
+                <span class="success-icon" aria-hidden="true"><i class="bi bi-check-lg"></i></span>
+                <h3 ref="successHeading" tabindex="-1">Enrollment request received</h3>
+                <p>
+                  I’ll contact you at <strong>{{ form.email.trim() }}</strong>
+                  <template v-if="form.contact.trim()"> or on the contact you shared</template>.
+                </p>
+                <div class="form-success-actions">
+                  <a class="btn btn-ghost" :href="contact.telegramUrl" target="_blank" rel="noopener noreferrer">
+                    <i class="bi bi-telegram" aria-hidden="true"></i>
+                    Telegram
+                  </a>
+                  <button class="btn btn-ghost" type="button" @click="startNewEnquiry">Send another</button>
+                </div>
+              </div>
+
+              <div v-else-if="submitted" class="form-success" role="status">
+                <span class="success-icon" aria-hidden="true"><i class="bi bi-check-lg"></i></span>
+                <h3 ref="successHeading" tabindex="-1">Almost done — press Send</h3>
+                <p>
+                  Your email app should open with the request to <strong>{{ contact.email }}</strong>.
+                </p>
+                <div class="form-success-actions">
+                  <a class="btn btn-accent" :href="mailtoHref">Open email again</a>
+                  <button class="btn btn-ghost" type="button" @click="copyEnquiry">
+                    {{ copyState === 'copied' ? 'Copied' : 'Copy request' }}
+                  </button>
+                </div>
+                <p class="copy-note" aria-live="polite">
+                  <template v-if="copyState === 'copied'">Copied — paste it into Telegram if you prefer.</template>
+                  <template v-else-if="copyState === 'failed'">Couldn’t copy — select the text below.</template>
+                </p>
+                <textarea
+                  v-if="copyState === 'failed'"
+                  class="input enquiry-preview"
+                  :value="enquiryText"
+                  readonly
+                  rows="8"
+                  aria-label="Your enrollment request text"
+                />
+                <button class="link-button" type="button" @click="editEnquiry">Edit my request</button>
+              </div>
+
+              <form v-else class="course-form" novalidate :aria-busy="sending ? 'true' : 'false'" @submit.prevent="handleSubmit">
+                <div v-if="apiError" class="form-alert" role="alert">
+                  <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+                  <span>
+                    {{ apiError }}
+                    <span class="form-alert-actions">
+                      <a :href="mailtoHref" @click="markMailtoFallback">Email instead</a>
+                      ·
+                      <a :href="contact.telegramUrl" target="_blank" rel="noopener noreferrer">Telegram</a>
+                    </span>
+                  </span>
+                </div>
+
+                <div class="hp-field" aria-hidden="true">
+                  <label for="cf-website">Website</label>
+                  <input id="cf-website" v-model="honeypot" type="text" name="website" tabindex="-1" autocomplete="off" />
+                </div>
+
+                <div v-if="showSummary && errorCount" class="form-alert" role="alert">
+                  <i class="bi bi-info-circle-fill" aria-hidden="true"></i>
+                  <span>
+                    {{ errorCount === 1 ? 'One thing needs a quick look' : `${errorCount} things need a quick look` }}
+                    before sending.
+                  </span>
+                </div>
+
+                <div class="form-row">
+                  <div class="field">
+                    <label class="field-label" for="cf-course">Course</label>
+                    <div class="select-wrap">
+                      <select id="cf-course" v-model="formCourseSlug" class="input" name="course">
+                        <option v-for="c in allCourses" :key="c.slug" :value="c.slug">{{ c.title }}</option>
+                      </select>
+                      <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label class="field-label" for="cf-cohort">Class</label>
+                    <div class="select-wrap">
+                      <select id="cf-cohort" v-model="formCohortId" class="input" name="cohort" :disabled="!formCohorts.length">
+                        <option :value="null">{{ formCohorts.length ? 'Next available class' : 'Next class (forming)' }}</option>
+                        <option v-for="c in formCohorts" :key="c.id" :value="c.id" :disabled="c.status !== 'open'">
+                          {{ c.title }} · {{ formatCohortDates(c) }}{{ c.status !== 'open' ? ` (${c.status})` : '' }}
+                        </option>
+                      </select>
+                      <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="field" :class="{ 'has-error': showError('name') }">
+                    <label class="field-label" for="cf-name">Your name</label>
+                    <input
+                      id="cf-name"
+                      ref="nameInput"
+                      v-model="form.name"
+                      class="input"
+                      type="text"
+                      name="name"
+                      autocomplete="name"
+                      maxlength="80"
+                      :aria-invalid="showError('name') ? 'true' : 'false'"
+                      :aria-describedby="showError('name') ? 'cf-name-error' : undefined"
+                      @blur="touch('name')"
+                    />
+                    <p v-if="showError('name')" id="cf-name-error" class="field-error">{{ allErrors.name }}</p>
+                  </div>
+                  <div class="field" :class="{ 'has-error': showError('email') }">
+                    <label class="field-label" for="cf-email">Email</label>
+                    <input
+                      id="cf-email"
+                      v-model="form.email"
+                      class="input"
+                      type="email"
+                      name="email"
+                      autocomplete="email"
+                      inputmode="email"
+                      maxlength="120"
+                      :aria-invalid="showError('email') ? 'true' : 'false'"
+                      :aria-describedby="showError('email') ? 'cf-email-error' : undefined"
+                      @blur="touch('email')"
+                    />
+                    <p v-if="showError('email')" id="cf-email-error" class="field-error">{{ allErrors.email }}</p>
+                  </div>
+                </div>
+
+                <div class="field" :class="{ 'has-error': showError('contact') }">
+                  <label class="field-label" for="cf-contact">
+                    Phone or Telegram <span class="field-optional">(optional)</span>
+                  </label>
+                  <input
+                    id="cf-contact"
+                    v-model="form.contact"
+                    class="input"
+                    type="text"
+                    name="contact"
+                    autocomplete="tel"
+                    maxlength="80"
+                    placeholder="e.g. 012 345 678 or @username"
+                    :aria-invalid="showError('contact') ? 'true' : 'false'"
+                    @blur="touch('contact')"
+                  />
+                  <p v-if="showError('contact')" class="field-error">{{ allErrors.contact }}</p>
+                </div>
+
+                <div v-if="referralOffered" class="field">
+                  <label class="field-label" for="cf-referral">
+                    Referred by <span class="field-optional">(optional)</span>
+                  </label>
+                  <input
+                    id="cf-referral"
+                    v-model="form.referredBy"
+                    class="input"
+                    type="text"
+                    name="referred_by"
+                    autocomplete="off"
+                    maxlength="80"
+                    placeholder="Your friend’s name or phone"
+                  />
+                  <p class="field-hint">Came with a friend? Add their name and you both get the friend discount.</p>
+                </div>
+
+                <fieldset class="field choice-field" :class="{ 'has-error': showError('language') }">
+                  <legend class="field-label">Preferred language</legend>
+                  <div class="choice-group">
+                    <label v-for="option in languageOptions" :key="option.value" class="choice">
+                      <input v-model="form.language" type="radio" name="language" :value="option.value" @change="touch('language')" />
+                      {{ option.label }}
+                    </label>
+                  </div>
+                  <p v-if="showError('language')" class="field-error">{{ allErrors.language }}</p>
+                </fieldset>
+
+                <fieldset class="field choice-field" :class="{ 'has-error': showError('format') }">
+                  <legend class="field-label">Learning format</legend>
+                  <div class="choice-group">
+                    <label v-for="option in formatOptions" :key="option.value" class="choice">
+                      <input v-model="form.format" type="radio" name="format" :value="option.value" @change="touch('format')" />
+                      {{ option.label }}
+                    </label>
+                  </div>
+                  <p v-if="showError('format')" class="field-error">{{ allErrors.format }}</p>
+                </fieldset>
+
+                <div class="field" :class="{ 'has-error': showError('level') }">
+                  <label class="field-label" for="cf-level">Your experience level</label>
+                  <div class="select-wrap">
+                    <select
+                      id="cf-level"
+                      v-model="form.level"
+                      class="input"
+                      name="level"
+                      :aria-invalid="showError('level') ? 'true' : 'false'"
+                      @blur="touch('level')"
+                      @change="touch('level')"
+                    >
+                      <option value="" disabled>Choose one…</option>
+                      <option v-for="option in levelOptions" :key="option" :value="option">{{ option }}</option>
+                    </select>
+                    <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                  </div>
+                  <p v-if="showError('level')" class="field-error">{{ allErrors.level }}</p>
+                </div>
+
+                <div class="field" :class="{ 'has-error': showError('message') }">
+                  <label class="field-label" for="cf-message">Message</label>
+                  <textarea
+                    id="cf-message"
+                    v-model="form.message"
+                    class="input"
+                    name="message"
+                    rows="4"
+                    :maxlength="messageMax"
+                    placeholder="What would you like to learn?"
+                    :aria-invalid="showError('message') ? 'true' : 'false'"
+                    @blur="touch('message')"
+                  />
+                  <p class="field-hint field-count">{{ form.message.length }} / {{ messageMax }}</p>
+                  <p v-if="showError('message')" class="field-error">{{ allErrors.message }}</p>
+                </div>
+
+                <p class="form-policy"><i class="bi bi-people" aria-hidden="true"></i> Classes open at {{ MIN_STUDENTS }} students. I’ll contact you to confirm before the class starts.</p>
+                <div class="form-submit">
+                  <button class="btn btn-accent btn-lg" type="submit" :disabled="sending">
+                    <span v-if="sending" class="btn-spinner" aria-hidden="true"></span>
+                    <i v-else class="bi bi-send" aria-hidden="true"></i>
+                    {{ sending ? 'Sending…' : 'Request enrollment' }}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Teleport>
 
     <CourseFooter />
   </div>
@@ -491,18 +514,49 @@ const loadCourse = async () => {
   }
 }
 
+const enrollOpen = ref(false)
+const nameInput = ref(null)
+let previousOverflow = ''
+
+const setEnrollHash = (open) => {
+  const url = new URL(window.location.href)
+  if (open) url.hash = 'enroll'
+  else url.hash = ''
+  history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`)
+}
+
+const closeEnroll = () => {
+  enrollOpen.value = false
+  setEnrollHash(false)
+}
+
 const goEnroll = async (cohort = null) => {
   if (cohort) {
     formCourseSlug.value = course.value.slug
     formCohortId.value = cohort.id
   }
+  enrollOpen.value = true
+  setEnrollHash(true)
   await nextTick()
-  document.getElementById('enroll')?.scrollIntoView({
-    behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
-    block: 'start',
-  })
-  window.setTimeout(() => document.getElementById('cf-name')?.focus({ preventScroll: true }), 400)
+  window.setTimeout(() => {
+    ;(nameInput.value || document.getElementById('cf-name'))?.focus({ preventScroll: true })
+  }, 50)
 }
+
+const onEnrollKey = (e) => {
+  if (e.key === 'Escape' && enrollOpen.value) closeEnroll()
+}
+
+watch(enrollOpen, (open) => {
+  if (open) {
+    previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    document.addEventListener('keydown', onEnrollKey)
+  } else {
+    document.body.style.overflow = previousOverflow
+    document.removeEventListener('keydown', onEnrollKey)
+  }
+})
 
 const instructorFacts = [
   { icon: 'bi bi-easel', text: 'Programming Instructor at ANT Training Center (2024 – 2025), teaching PHP, Laravel, MySQL, and OOP' },
@@ -814,26 +868,20 @@ const editEnquiry = async () => {
   await nextTick()
   document.getElementById('cf-name')?.focus()
 }
-const enrollEl = ref(null)
-const enrollInView = ref(false)
-let enrollObserver
-
 watch(slug, async () => {
+  closeEnroll()
   await loadCourse()
 })
 
 onMounted(async () => {
   allCourses.value = staticCourses.map((c) => mergeCourse(null, c))
   if (window.location.hash === '#enroll') window.setTimeout(() => goEnroll(), 150)
-  if ('IntersectionObserver' in window && enrollEl.value) {
-    enrollObserver = new IntersectionObserver(([entry]) => { enrollInView.value = entry.isIntersecting }, { threshold: 0.1 })
-    enrollObserver.observe(enrollEl.value)
-  }
   await loadCourse()
   loadCourses(engineAPI, apiEnabled).then((list) => { allCourses.value = list })
 })
 
 onBeforeUnmount(() => {
-  enrollObserver?.disconnect()
+  document.removeEventListener('keydown', onEnrollKey)
+  if (enrollOpen.value) document.body.style.overflow = previousOverflow
 })
 </script>

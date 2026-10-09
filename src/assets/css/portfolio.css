@@ -2650,17 +2650,100 @@ textarea.input {
 .progress-fill { display: block; height: 100%; border-radius: inherit; background: var(--accent); transition: width 0.6s var(--ease); }
 .is-confirmed .progress-fill { background: var(--live); }
 
-/* Enroll tile */
-.course-enroll {
-  display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: 2rem;
-  padding: clamp(1.5rem, 3.5vw, 2.75rem); border-radius: var(--radius-lg); scroll-margin-top: calc(var(--header-h) + 16px);
+/* Enroll dialog */
+.enroll-dialog-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+  background: rgb(10 10 10 / 42%);
+  backdrop-filter: blur(4px);
+  animation: enroll-scrim-in 0.2s ease-out;
 }
-.course-enroll .course-enroll-panel { padding: 0; border: 0; background: none; box-shadow: none; }
-.course-enroll-intro { display: flex; flex-direction: column; gap: 0.9rem; }
-.course-enroll .enroll-facts { display: grid; gap: 0.6rem; margin: 0.25rem 0 0; padding: 0; list-style: none; }
-.course-enroll .enroll-facts li { display: flex; gap: 0.6rem; align-items: center; color: var(--text-3); }
-.course-enroll .enroll-facts i { color: var(--accent); }
+.enroll-dialog {
+  width: min(560px, 100%);
+  max-height: min(92vh, 920px);
+  display: flex;
+  flex-direction: column;
+  border-radius: 28px 28px 0 0;
+  background: var(--surface);
+  box-shadow: 0 -16px 48px rgb(0 0 0 / 14%);
+  animation: enroll-sheet-in 0.28s var(--ease);
+}
+.enroll-dialog-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-shrink: 0;
+  padding: 1.35rem 1.35rem 0.5rem;
+}
+.enroll-dialog-head .panel-title { margin: 0.15rem 0 0; font-size: clamp(1.35rem, 3vw, 1.65rem); }
+.enroll-dialog-close {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+.enroll-dialog-close:hover { background: var(--surface-2, #f5f5f4); border-color: var(--border-strong); }
+.enroll-dialog-body {
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 0.5rem 1.35rem calc(1.5rem + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+.enroll-dialog-lead { margin: 0; }
+.enroll-dialog .enroll-facts {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.enroll-dialog .enroll-facts li {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  color: var(--text-3);
+  font-size: 0.92rem;
+}
+.enroll-dialog .enroll-facts i { color: var(--accent); }
+.enroll-dialog .course-enroll-panel { padding: 0.25rem 0 0; border: 0; background: none; box-shadow: none; }
 .enroll-alt a { color: var(--accent-ink); font-weight: 600; }
+@keyframes enroll-scrim-in { from { opacity: 0; } }
+@keyframes enroll-sheet-in { from { transform: translateY(24px); opacity: 0.6; } }
+@media (min-width: 640px) {
+  .enroll-dialog-scrim {
+    align-items: center;
+    padding: 1.5rem;
+  }
+  .enroll-dialog {
+    border-radius: 28px;
+    box-shadow: 0 24px 64px rgb(0 0 0 / 18%);
+    animation: enroll-dialog-in 0.28s var(--ease);
+  }
+  .enroll-dialog-head { padding: 1.6rem 1.75rem 0.6rem; }
+  .enroll-dialog-body { padding: 0.5rem 1.75rem 1.75rem; }
+  @keyframes enroll-dialog-in {
+    from { transform: translateY(12px) scale(0.98); opacity: 0; }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .enroll-dialog-scrim,
+  .enroll-dialog { animation: none; }
+}
 .form-policy {
   display: flex; gap: 0.5rem; align-items: flex-start; padding: 0.75rem 0.9rem; border-radius: var(--radius-sm);
   background: var(--accent-soft); color: var(--accent-ink); font-size: 0.9rem;
@@ -2692,7 +2775,7 @@ textarea.input {
     grid-template-areas: "intro intro" "photo photo" "f1 f2" "f3 f4";
   }
   .course-bento .course-photo { min-height: 260px; max-height: 340px; }
-  .policy-tile, .course-enroll { grid-template-columns: 1fr; }
+  .policy-tile { grid-template-columns: 1fr; }
 }
 @media (max-width: 767px) {
   .course-cards, .course-split, .policy-steps { grid-template-columns: 1fr; }
